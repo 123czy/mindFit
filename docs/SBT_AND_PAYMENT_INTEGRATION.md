@@ -15,7 +15,7 @@
 
 ### 合约接口
 
-```solidity
+\`\`\`solidity
 // 铸造 SBT
 function mint(address to, string memory username, string memory metadataURI) external returns (uint256)
 
