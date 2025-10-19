@@ -1,9 +1,9 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Eye, Heart } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { FallbackImage } from "@/components/ui/fallback-image"
 import type { Post } from "@/lib/mock-data"
 
 interface PostCardProps {
@@ -18,11 +18,12 @@ export function PostCard({ post }: PostCardProps) {
     <Link href={`/post/${post.id}`} className="block group">
       <Card className="border border-border/40 shadow-apple hover:shadow-apple-lg transition-apple hover-lift bg-card">
         <div className="relative aspect-[3/4] overflow-hidden">
-          <Image
+          <FallbackImage
             src={post.images[0] || "/placeholder.svg"}
             alt={post.title}
             fill
             className="object-cover group-hover:scale-[1.08] transition-all duration-500 ease-out"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           {post.products && post.products.length > 0 && post.products[0].isFree && (
             <Badge className="absolute top-3 left-3 bg-[#4A7C59] text-white border-0 rounded-lg px-2.5 py-1 text-xs font-medium shadow-apple">
