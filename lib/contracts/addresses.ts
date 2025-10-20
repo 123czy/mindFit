@@ -43,6 +43,41 @@ export const CONTRACT_ADDRESSES = {
     [polygonAmoy.id]: "0x0000000000000000000000000000000000000000",
     [bscTestnet.id]: "0x0000000000000000000000000000000000000000",
   },
+
+  // Identity Token (EIP-4973 Account-bound NFT)
+  IDENTITY_TOKEN: {
+    [sepolia.id]: "0x0000000000000000000000000000000000000000", // TODO: Replace with deployed address
+    [polygonAmoy.id]: "0x0000000000000000000000000000000000000000",
+    [bscTestnet.id]: "0x0000000000000000000000000000000000000000",
+  },
+
+  // Reputation Badge (EIP-5114 Soulbound Badge)
+  REPUTATION_BADGE: {
+    [sepolia.id]: "0x0000000000000000000000000000000000000000", // TODO: Replace with deployed address
+    [polygonAmoy.id]: "0x0000000000000000000000000000000000000000",
+    [bscTestnet.id]: "0x0000000000000000000000000000000000000000",
+  },
+
+  // Badge Rule Registry
+  BADGE_RULE_REGISTRY: {
+    [sepolia.id]: "0x0000000000000000000000000000000000000000", // TODO: Replace with deployed address
+    [polygonAmoy.id]: "0x0000000000000000000000000000000000000000",
+    [bscTestnet.id]: "0x0000000000000000000000000000000000000000",
+  },
+
+  // Marketplace V2 (with reputation integration)
+  MARKETPLACE_V2: {
+    [sepolia.id]: "0x0000000000000000000000000000000000000000", // TODO: Replace with deployed address
+    [polygonAmoy.id]: "0x0000000000000000000000000000000000000000",
+    [bscTestnet.id]: "0x0000000000000000000000000000000000000000",
+  },
+
+  // Reputation Data Feed
+  REPUTATION_DATA_FEED: {
+    [sepolia.id]: "0x0000000000000000000000000000000000000000", // TODO: Replace with deployed address
+    [polygonAmoy.id]: "0x0000000000000000000000000000000000000000",
+    [bscTestnet.id]: "0x0000000000000000000000000000000000000000",
+  },
 } as const
 
 // 获取指定链上的合约地址
