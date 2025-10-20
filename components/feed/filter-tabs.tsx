@@ -1,59 +1,35 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-const filters = ["全部", "名片收录", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点", "技巧讨论"]
+const categories = ["推荐", "穿搭", "美食", "彩妆", "影视", "职场", "情感", "家居", "游戏", "旅行", "健身"]
 
 export function FilterTabs() {
-  const [activeFilter, setActiveFilter] = useState("全部")
-  const [sortBy, setSortBy] = useState("热度")
+  const [activeCategory, setActiveCategory] = useState("推荐")
 
   return (
-    <div className="border-b border-border/40 glass-effect shadow-apple">
+    <div className="border-b border-border/20 bg-background/95 backdrop-blur-sm sticky top-16 z-40">
       <div className="container mx-auto px-6">
-        <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
-          {filters.map((filter) => (
-            <Button
-              key={filter}
-              variant={activeFilter === filter ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveFilter(filter)}
-              className={
-                activeFilter === filter
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 shadow-apple transition-apple active-press"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60 rounded-full px-4 transition-apple active-press"
-              }
+        <div className="flex items-center gap-8 py-3 overflow-x-auto scrollbar-hide">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`
+                text-sm whitespace-nowrap transition-all duration-200 relative pb-0.5
+                ${
+                  activeCategory === category
+                    ? "text-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }
+              `}
             >
-              {filter}
-            </Button>
+              {category}
+              {activeCategory === category && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full" />
+              )}
+            </button>
           ))}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto rounded-full px-4 transition-apple hover:bg-accent/60 active-press"
-              >
-                {sortBy}
-                <ChevronDown className="ml-1.5 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl shadow-apple-lg border-border/40">
-              <DropdownMenuItem onClick={() => setSortBy("热度")} className="rounded-lg transition-apple">
-                热度
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("最新")} className="rounded-lg transition-apple">
-                最新
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("推荐")} className="rounded-lg transition-apple">
-                推荐
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </div>
