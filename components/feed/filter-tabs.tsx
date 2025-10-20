@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 
-const categories = ["推荐", "穿搭", "美食", "彩妆", "影视", "职场", "情感", "家居", "游戏", "旅行", "健身"]
+
+const categories = ["全部", "名片收录", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点", "深度观点"]
 
 export function FilterTabs() {
-  const [activeCategory, setActiveCategory] = useState("推荐")
+  const [activeCategory, setActiveCategory] = useState("全部")
 
   return (
     <div className="border-b border-border/20 bg-background/95 backdrop-blur-sm sticky top-16 z-40">

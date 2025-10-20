@@ -6,6 +6,8 @@ import { Home, Bell, Wallet, PenSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { useAccount } from "wagmi"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 const navItems = [
   { href: "/", label: "发现", icon: Home },
@@ -16,11 +18,36 @@ const navItems = [
 
 export function SidebarLeft() {
   const pathname = usePathname()
-  const isLoggedIn = false
+  const { address, isConnected } = useAccount()
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
 
   return (
     <div className="sticky top-20 space-y-4">
-      {!isLoggedIn && (
+      {isConnected && address ? (
+        <Card className="border-border/40 shadow-apple hover:shadow-apple-lg transition-apple overflow-hidden">
+          <CardContent className="p-5">
+            <Link href="/profile/AI_Creator_Pro" className="flex items-center gap-3 group">
+              <Avatar className="h-12 w-12 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-base font-semibold">
+                  {address.slice(2, 4).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">AI Creator</p>
+                <p className="text-xs text-muted-foreground font-mono truncate">{formatAddress(address)}</p>
+              </div>
+            </Link>
+            <div className="flex mt-2">
+                <p className="text-sm text-muted-foreground font-mono truncate"> 已发布  40</p>
+                <p className="text-sm text-muted-foreground font-mono truncate ml-2">已收录  12</p>
+
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
         <Card className="border-border/40 shadow-apple hover:shadow-apple-lg transition-apple overflow-hidden">
           <CardContent className="p-5 space-y-4">
             <p className="text-sm text-center text-muted-foreground leading-relaxed font-medium">
