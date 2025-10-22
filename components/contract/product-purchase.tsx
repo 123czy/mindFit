@@ -67,7 +67,7 @@ export function ProductPurchase({ productId, productName, price, onPurchaseSucce
     if (!address) return
 
     try {
-      await purchaseProduct(productId, 1n) // 购买数量为 1
+      await purchaseProduct(productId) // 购买数量为 1
     } catch (error) {
       console.error("[v0] Purchase error:", error)
       toast.error("购买失败，请重试")

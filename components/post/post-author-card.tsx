@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import type { User } from "@/lib/mock-data"
+import type { User } from "@/lib/types"
 
 interface PostAuthorCardProps {
   author: User

@@ -1,6 +1,6 @@
 import { CommentItem } from "@/components/comment/comment-item"
 import { Empty } from "@/components/ui/empty"
-import type { Comment } from "@/lib/mock-data"
+import type { Comment } from "@/lib/types"
 
 interface CommentListProps {
   comments: Comment[]

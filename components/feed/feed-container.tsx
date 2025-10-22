@@ -1,50 +1,56 @@
 "use client"
 
-import { useState } from "react"
 import { PostCard } from "@/components/post/post-card"
 import { Button } from "@/components/ui/button"
-import { mockPosts } from "@/lib/mock-data"
-import { usePosts } from "@/lib/posts-context"
+import { usePosts } from "@/lib/hooks/use-posts"
 import { Loader2 } from "lucide-react"
+import { FilterTabs } from "@/components/feed/filter-tabs"
 
 export function FeedContainer() {
-  const [isLoading, setIsLoading] = useState(false)
-  const { newPosts } = usePosts()
+  const { posts, isLoading, error } = usePosts({ limit: 20 })
 
-  const handleLoadMore = () => {
-    setIsLoading(true)
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 1000)
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">加载失败，请稍后重试</p>
+      </div>
+    )
   }
 
-  const allPosts = [...newPosts, ...mockPosts]
-
-  console.log("[v0] Rendering feed with posts:", allPosts.length, "new posts:", newPosts.length)
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       {/* Masonry Grid */}
+      <FilterTabs />
       <div className="masonry-grid">
-        {allPosts.map((post) => (
+        {posts.map((post) => (
           <div key={post.id} className="masonry-item">
             <PostCard post={post} />
           </div>
         ))}
       </div>
 
-      {/* Load More */}
-      <div className="flex justify-center pt-4">
-        <Button variant="outline" onClick={handleLoadMore} disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              加载中...
-            </>
-          ) : (
-            "加载更多"
-          )}
-        </Button>
-      </div>
+      {posts.length === 0 && (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">暂无内容</p>
+        </div>
+      )}
+
+      {/* Load More - TODO: Implement pagination */}
+      {posts.length > 0 && (
+        <div className="flex justify-center pt-4">
+          <Button variant="outline" disabled>
+            已加载全部
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useReadContract, useWatchContractEvent } from "wagmi"
-import { useAccount, useChainId } from "wagmi"
-import { REPUTATION_BADGE_ABI } from "../abis"
-import { getContractAddress } from "../addresses"
-import { toast } from "sonner"
+import { useReadContract, useWatchContractEvent } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
+import { REPUTATION_BADGE_ABI } from "../abis";
+import { getContractAddress } from "../addresses";
+import { toast } from "sonner";
 
 // Check if user has a specific badge
 export function useHasBadge(address?: `0x${string}`, ruleId?: bigint) {
-  const chainId = useChainId()
-  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId)
+  const chainId = useChainId();
+  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId);
 
   return useReadContract({
     address: contractAddress,
@@ -19,29 +19,45 @@ export function useHasBadge(address?: `0x${string}`, ruleId?: bigint) {
     query: {
       enabled: !!contractAddress && !!address && ruleId !== undefined,
     },
-  })
+  });
 }
 
-// Get all badges for a user
+// Get all badge IDs for a user
 export function useUserBadges(address?: `0x${string}`) {
-  const chainId = useChainId()
-  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId)
+  const chainId = useChainId();
+  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId);
 
   return useReadContract({
     address: contractAddress,
     abi: REPUTATION_BADGE_ABI,
-    functionName: "badgesOf",
+    functionName: "badgeIdsOf",
     args: address ? [address] : undefined,
     query: {
       enabled: !!contractAddress && !!address,
     },
-  })
+  });
+}
+
+// Get rule ID for a badge
+export function useBadgeRule(badgeId?: bigint) {
+  const chainId = useChainId();
+  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId);
+
+  return useReadContract({
+    address: contractAddress,
+    abi: REPUTATION_BADGE_ABI,
+    functionName: "badgeRule",
+    args: badgeId !== undefined ? [badgeId] : undefined,
+    query: {
+      enabled: !!contractAddress && badgeId !== undefined,
+    },
+  });
 }
 
 // Get badge metadata URI
 export function useBadgeURI(badgeId?: bigint) {
-  const chainId = useChainId()
-  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId)
+  const chainId = useChainId();
+  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId);
 
   return useReadContract({
     address: contractAddress,
@@ -51,13 +67,13 @@ export function useBadgeURI(badgeId?: bigint) {
     query: {
       enabled: !!contractAddress && badgeId !== undefined,
     },
-  })
+  });
 }
 
 // Get total supply of a badge type
 export function useBadgeTotalSupply(ruleId?: bigint) {
-  const chainId = useChainId()
-  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId)
+  const chainId = useChainId();
+  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId);
 
   return useReadContract({
     address: contractAddress,
@@ -67,13 +83,13 @@ export function useBadgeTotalSupply(ruleId?: bigint) {
     query: {
       enabled: !!contractAddress && ruleId !== undefined,
     },
-  })
+  });
 }
 
 // Get user's total badge count
 export function useBadgeBalance(address?: `0x${string}`) {
-  const chainId = useChainId()
-  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId)
+  const chainId = useChainId();
+  const contractAddress = getContractAddress("REPUTATION_BADGE", chainId);
 
   return useReadContract({
     address: contractAddress,
@@ -83,14 +99,20 @@ export function useBadgeBalance(address?: `0x${string}`) {
     query: {
       enabled: !!contractAddress && !!address,
     },
-  })
+  });
 }
 
 // Watch for badge minted events
-export function useWatchBadgeMinted(onBadgeMinted?: (account: `0x${string}`, ruleId: bigint, badgeId: bigint) => void) {
-  const chainId = useChainId()
-  const address = getContractAddress("REPUTATION_BADGE", chainId)
-  const { address: userAddress } = useAccount()
+export function useWatchBadgeMinted(
+  onBadgeMinted?: (
+    account: `0x${string}`,
+    ruleId: bigint,
+    badgeId: bigint
+  ) => void
+) {
+  const chainId = useChainId();
+  const address = getContractAddress("REPUTATION_BADGE", chainId);
+  const { address: userAddress } = useAccount();
 
   useWatchContractEvent({
     address,
@@ -98,16 +120,21 @@ export function useWatchBadgeMinted(onBadgeMinted?: (account: `0x${string}`, rul
     eventName: "BadgeMinted",
     onLogs(logs) {
       logs.forEach((log) => {
-        const { account, ruleId, badgeId, metadataURI } = log.args
-        console.log("[v0] Badge minted:", { account, ruleId, badgeId, metadataURI })
+        const { account, ruleId, badgeId, metadataURI } = log.args;
+        console.log("[v0] Badge minted:", {
+          account,
+          ruleId,
+          badgeId,
+          metadataURI,
+        });
 
         if (account === userAddress) {
           toast.success("🎉 恭喜获得新徽章！", {
             description: "查看您的个人资料以了解详情",
-          })
-          onBadgeMinted?.(account, ruleId, badgeId)
+          });
+          onBadgeMinted?.(account, ruleId, badgeId);
         }
-      })
+      });
     },
-  })
+  });
 }

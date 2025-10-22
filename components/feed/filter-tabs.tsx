@@ -3,14 +3,14 @@
 import { useState } from "react"
 
 
-const categories = ["全部", "名片收录", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点", "深度观点"]
+const categories = ["全部", "名片收录", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点"]
 
 export function FilterTabs() {
   const [activeCategory, setActiveCategory] = useState("全部")
 
   return (
-    <div className="border-b border-border/20 bg-background/95 backdrop-blur-sm sticky top-16 z-40">
-      <div className="container mx-auto px-6">
+    <div className="bg-background/95 backdrop-blur-sm sticky top-16 z-40">
+      <div className="mx-auto px-2">
         <div className="flex items-center gap-8 py-3 overflow-x-auto scrollbar-hide">
           {categories.map((category) => (
             <button

@@ -2,7 +2,7 @@
 import { Lock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductCardInPost } from "@/components/product/product-card-in-post"
-import type { Product } from "@/lib/mock-data"
+import type { Product } from "@/lib/types"
 
 interface PaidContentSectionProps {
   products: Product[]

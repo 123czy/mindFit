@@ -1,8 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import type { Post } from "@/lib/mock-data"
-import { mockUsers } from "@/lib/mock-data"
+import type { Post } from "@/lib/types"
 
 interface PostsContextType {
   newPosts: Post[]
@@ -30,7 +29,7 @@ export function PostsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (newPosts.length > 0) {
       localStorage.setItem("chaoci-new-posts", JSON.stringify(newPosts))
-      console.log("[v0] Saved posts to localStorage:", newPosts.length)
+      console.log("[v0] Saved posts to localStorage:", newPosts,newPosts.length)
     }
   }, [newPosts])
 
@@ -39,7 +38,12 @@ export function PostsProvider({ children }: { children: ReactNode }) {
       ...postData,
       id: `new-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      author: mockUsers[0], // Use first mock user as author
+      author: {
+        id: "temp",
+        username: "Current User",
+        avatar: "/placeholder-user.jpg",
+        walletAddress: "0x0",
+      },
       likeCount: 0,
       commentCount: 0,
       viewCount: 0,

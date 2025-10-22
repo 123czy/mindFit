@@ -1,8 +1,8 @@
 "use client"
 
 import { useAccount } from "wagmi"
-import { useUserBadges, useBadgeURI } from "@/lib/contracts/hooks/use-badges"
-import { useBadgeRule } from "@/lib/contracts/hooks/use-badge-rules"
+import { useUserBadges, useBadgeURI, useBadgeRule } from "@/lib/contracts/hooks/use-badges"
+import { useBadgeRule as useBadgeRuleFromRegistry } from "@/lib/contracts/hooks/use-badge-rules"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Award, Lock, Loader2 } from "lucide-react"
@@ -14,8 +14,25 @@ interface BadgeMetadata {
   image: string
 }
 
+// Component that fetches rule ID for a badge and then displays it
+function BadgeCardWithRule({ badgeId }: { badgeId: bigint }) {
+  const { data: ruleId } = useBadgeRule(badgeId)
+  
+  if (!ruleId) {
+    return (
+      <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-xl border-primary/20">
+        <div className="flex flex-col items-center text-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </Card>
+    )
+  }
+  
+  return <BadgeCard ruleId={ruleId} badgeId={badgeId} />
+}
+
 function BadgeCard({ ruleId, badgeId }: { ruleId: bigint; badgeId: bigint }) {
-  const { data: rule } = useBadgeRule(ruleId)
+  const { data: rule } = useBadgeRuleFromRegistry(ruleId)
   const { data: badgeURI } = useBadgeURI(badgeId)
   const [metadata, setMetadata] = useState<BadgeMetadata | null>(null)
 
@@ -50,7 +67,7 @@ function BadgeCard({ ruleId, badgeId }: { ruleId: bigint; badgeId: bigint }) {
 }
 
 function LockedBadgeCard({ ruleId }: { ruleId: bigint }) {
-  const { data: rule } = useBadgeRule(ruleId)
+  const { data: rule } = useBadgeRuleFromRegistry(ruleId)
 
   return (
     <Card className="p-4 bg-muted/30 backdrop-blur-xl border-border/40 opacity-60">
@@ -82,18 +99,18 @@ export function BadgeDisplay() {
     )
   }
 
-  const earnedRuleIds = badges?.ruleIds || []
-  const earnedBadgeIds = badges?.badgeIds || []
+  // badges is now just an array of badge IDs
+  const earnedBadgeIds = (badges as readonly bigint[] | undefined) || []
 
   return (
     <div className="space-y-6">
       {/* Earned Badges */}
-      {earnedRuleIds.length > 0 && (
+      {earnedBadgeIds.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold mb-4">已获得徽章</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {earnedRuleIds.map((ruleId, index) => (
-              <BadgeCard key={ruleId.toString()} ruleId={ruleId} badgeId={earnedBadgeIds[index]} />
+            {earnedBadgeIds.map((badgeId) => (
+              <BadgeCardWithRule key={badgeId.toString()} badgeId={badgeId} />
             ))}
           </div>
         </div>
@@ -103,15 +120,13 @@ export function BadgeDisplay() {
       <div>
         <h3 className="text-lg font-semibold mb-4">未获得徽章</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {allRuleIds
-            .filter((ruleId) => !earnedRuleIds.includes(ruleId))
-            .map((ruleId) => (
-              <LockedBadgeCard key={ruleId.toString()} ruleId={ruleId} />
-            ))}
+          {allRuleIds.map((ruleId) => (
+            <LockedBadgeCard key={ruleId.toString()} ruleId={ruleId} />
+          ))}
         </div>
       </div>
 
-      {earnedRuleIds.length === 0 && (
+      {earnedBadgeIds.length === 0 && (
         <div className="text-center py-12">
           <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">还没有获得任何徽章</p>

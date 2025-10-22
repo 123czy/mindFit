@@ -55,7 +55,7 @@ export function StatsDisplay() {
       <StatCard title="购买次数" value={buyerStats?.totalPurchases?.toString() || "0"} icon={ShoppingBag} />
       <StatCard
         title="总消费"
-        value={buyerStats ? formatUnits(buyerStats.totalSpend, 6) : "0"}
+        value={buyerStats ? formatUnits(buyerStats.totalVolume, 6) : "0"}
         unit="USDT"
         icon={DollarSign}
       />

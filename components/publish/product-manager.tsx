@@ -5,9 +5,11 @@ import { Plus, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductSelectionModal } from "@/components/publish/product-selection-modal"
 import { ProductEditModal } from "@/components/publish/product-edit-modal"
-import type { Product } from "@/lib/mock-data"
+import type { Product } from "@/lib/types"
 import Image from "next/image"
 import { toast } from "sonner"
+import { useListWork } from "@/lib/contracts/hooks/use-marketplace-v2"
+import { parseEther } from "viem"
 
 interface ProductManagerProps {
   selectedProducts: Product[]
@@ -18,7 +20,7 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
   const [showSelectionModal, setShowSelectionModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-
+  const { listWork } = useListWork()
   const handleRemoveProduct = (productId: string) => {
     if (confirm("确定要移除这个商品吗？")) {
       onChange(selectedProducts.filter((p) => p.id !== productId))
@@ -36,8 +38,14 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
     setShowSelectionModal(false)
   }
 
-  const handleProductUpdated = (updatedProduct: Product) => {
+  const handleProductUpdated = async(updatedProduct: Product) => {
     onChange(selectedProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
+    try{
+      await listWork(updatedProduct.id, parseEther(updatedProduct.price.toString()))
+    } catch (error) {
+      toast.error("商品上链失败")
+      return
+    }
     setShowEditModal(false)
     setEditingProduct(null)
   }
@@ -143,6 +151,7 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
         product={editingProduct}
         onSave={handleProductUpdated}
       />
+
     </>
   )
 }

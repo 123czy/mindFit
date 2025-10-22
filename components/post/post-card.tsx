@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { FallbackImage } from "@/components/ui/fallback-image"
-import type { Post } from "@/lib/mock-data"
+import type { Post } from "@/lib/types"
 
 interface PostCardProps {
   post: Post
@@ -32,12 +32,12 @@ export function PostCard({ post }: PostCardProps) {
           )}
           {price && (
             <div className="absolute bottom-3 left-3 bg-gradient-to-r from-[#FFB800] to-[#FFA000] text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-apple">
-              ¥{price.toFixed(2)}
+              ${price.toFixed(2)}
             </div>
           )}
         </div>
 
-        <div className="px-4 pb-4 pt-3 space-y-2 bg-card">
+        <div className="px-4 space-y-2 bg-card">
           <h3 className="font-semibold text-sm line-clamp-2 text-foreground leading-relaxed tracking-tight">
             {post.title}
           </h3>

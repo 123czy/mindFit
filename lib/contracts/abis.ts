@@ -48,7 +48,69 @@ export const ERC20_ABI = [
     stateMutability: "view",
     type: "function",
   },
-] as const
+] as const;
+
+// MockERC20 ABI - includes mint function for test token distribution
+export const MOCK_ERC20_ABI = [
+  {
+    inputs: [{ name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "recipient", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "symbol",
+    outputs: [{ name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "name",
+    outputs: [{ name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    name: "mint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
 
 // 炒词平台合约 ABI (示例)
 export const CHAOCI_PLATFORM_ABI = [
@@ -133,7 +195,7 @@ export const CHAOCI_PLATFORM_ABI = [
     name: "ContentPurchased",
     type: "event",
   },
-] as const
+] as const;
 
 // NFT 名片合约 ABI (示例)
 export const BUSINESS_CARD_NFT_ABI = [
@@ -168,7 +230,7 @@ export const BUSINESS_CARD_NFT_ABI = [
     stateMutability: "view",
     type: "function",
   },
-] as const
+] as const;
 
 // SBT (Soulbound Token) 合约 ABI 用于用户账户绑定
 export const SBT_ABI = [
@@ -246,7 +308,7 @@ export const SBT_ABI = [
     name: "SBTMinted",
     type: "event",
   },
-] as const
+] as const;
 
 // Marketplace 合约 ABI 用于基于代币的产品购买
 export const MARKETPLACE_ABI = [
@@ -323,7 +385,7 @@ export const MARKETPLACE_ABI = [
     name: "ProductPurchased",
     type: "event",
   },
-] as const
+] as const;
 
 // IdentityToken ABI - EIP-4973 Account-bound NFT for user identity
 export const IDENTITY_TOKEN_ABI = [
@@ -384,12 +446,27 @@ export const IDENTITY_TOKEN_ABI = [
     anonymous: false,
     name: "IdentityMinted",
     inputs: [
-      { name: "account", type: "address", indexed: true, internalType: "address" },
-      { name: "tokenId", type: "uint256", indexed: true, internalType: "uint256" },
-      { name: "metadataURI", type: "string", indexed: false, internalType: "string" },
+      {
+        name: "account",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "tokenId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "metadataURI",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
     ],
   },
-] as const
+] as const;
 
 // ReputationBadge ABI - EIP-5114 Soulbound Badge for achievements
 export const REPUTATION_BADGE_ABI = [
@@ -411,7 +488,9 @@ export const REPUTATION_BADGE_ABI = [
       { name: "ruleId", type: "uint256", internalType: "uint256" },
       { name: "accounts", type: "address[]", internalType: "address[]" },
     ],
-    outputs: [{ name: "badgeIds", type: "uint256[]", internalType: "uint256[]" }],
+    outputs: [
+      { name: "badgeIds", type: "uint256[]", internalType: "uint256[]" },
+    ],
   },
   {
     type: "function",
@@ -466,13 +545,33 @@ export const REPUTATION_BADGE_ABI = [
     anonymous: false,
     name: "BadgeMinted",
     inputs: [
-      { name: "account", type: "address", indexed: true, internalType: "address" },
-      { name: "ruleId", type: "uint256", indexed: true, internalType: "uint256" },
-      { name: "badgeId", type: "uint256", indexed: false, internalType: "uint256" },
-      { name: "metadataURI", type: "string", indexed: false, internalType: "string" },
+      {
+        name: "account",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "ruleId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "badgeId",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "metadataURI",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
     ],
   },
-] as const
+] as const;
 
 // BadgeRuleRegistry ABI - Manages badge rules and conditions
 export const BADGE_RULE_REGISTRY_ABI = [
@@ -487,8 +586,16 @@ export const BADGE_RULE_REGISTRY_ABI = [
         internalType: "struct BadgeRuleRegistry.BadgeRule",
         components: [
           { name: "ruleId", type: "uint256", internalType: "uint256" },
-          { name: "trigger", type: "uint8", internalType: "enum BadgeRuleRegistry.TriggerType" },
-          { name: "target", type: "uint8", internalType: "enum BadgeRuleRegistry.BadgeTarget" },
+          {
+            name: "trigger",
+            type: "uint8",
+            internalType: "enum BadgeRuleRegistry.TriggerType",
+          },
+          {
+            name: "target",
+            type: "uint8",
+            internalType: "enum BadgeRuleRegistry.BadgeTarget",
+          },
           { name: "threshold", type: "uint256", internalType: "uint256" },
           { name: "metadataURI", type: "string", internalType: "string" },
           { name: "enabled", type: "bool", internalType: "bool" },
@@ -518,138 +625,550 @@ export const BADGE_RULE_REGISTRY_ABI = [
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
-] as const
+] as const;
 
 // Marketplace ABI - Updated with reputation system integration
 export const MARKETPLACE_V2_ABI = [
   {
-    type: "function",
-    name: "listWork",
-    stateMutability: "nonpayable",
+    type: "constructor",
     inputs: [
-      { name: "workId", type: "bytes32", internalType: "bytes32" },
       {
-        name: "listing",
-        type: "tuple",
-        internalType: "struct Marketplace.Listing",
-        components: [
-          { name: "creator", type: "address", internalType: "address" },
-          { name: "price", type: "uint256", internalType: "uint256" },
-          { name: "nonce", type: "uint256", internalType: "uint256" },
-          { name: "metadataURI", type: "string", internalType: "string" },
-        ],
+        name: "token",
+        type: "address",
+        internalType: "contract IMintableERC20",
       },
-      { name: "signature", type: "bytes", internalType: "bytes" },
+      {
+        name: "identityToken_",
+        type: "address",
+        internalType: "contract IdentityToken",
+      },
+      {
+        name: "reputationBadge_",
+        type: "address",
+        internalType: "contract ReputationBadge",
+      },
+      {
+        name: "badgeRuleRegistry_",
+        type: "address",
+        internalType: "contract BadgeRuleRegistry",
+      },
+      {
+        name: "dataFeed_",
+        type: "address",
+        internalType: "contract ReputationDataFeed",
+      },
+      {
+        name: "identityURI",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "welcomeAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
-    outputs: [],
-  },
-  {
-    type: "function",
-    name: "purchase",
     stateMutability: "nonpayable",
-    inputs: [{ name: "workId", type: "bytes32", internalType: "bytes32" }],
-    outputs: [],
   },
   {
     type: "function",
-    name: "getWork",
-    stateMutability: "view",
-    inputs: [{ name: "workId", type: "bytes32", internalType: "bytes32" }],
+    name: "badgeRuleRegistry",
+    inputs: [],
     outputs: [
       {
         name: "",
-        type: "tuple",
-        internalType: "struct Marketplace.Work",
-        components: [
-          { name: "creator", type: "address", internalType: "address" },
-          { name: "price", type: "uint256", internalType: "uint256" },
-          { name: "active", type: "bool", internalType: "bool" },
-          { name: "totalSold", type: "uint256", internalType: "uint256" },
-          { name: "metadataURI", type: "string", internalType: "string" },
-        ],
+        type: "address",
+        internalType: "contract BadgeRuleRegistry",
       },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "buyerWelcomeAmount",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creatorAt",
+    inputs: [
+      {
+        name: "index",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creatorRegistryLength",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "dataFeed",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract ReputationDataFeed",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "deactivateWork",
+    inputs: [
+      {
+        name: "workId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "getBuyerStat",
-    stateMutability: "view",
-    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
         name: "",
         type: "tuple",
         internalType: "struct Marketplace.BuyerStat",
         components: [
-          { name: "totalPurchases", type: "uint256", internalType: "uint256" },
-          { name: "totalSpend", type: "uint256", internalType: "uint256" },
-          { name: "lastPurchaseAt", type: "uint256", internalType: "uint256" },
+          {
+            name: "totalPurchases",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "totalVolume",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
+    stateMutability: "view",
   },
   {
     type: "function",
     name: "getCreatorStat",
-    stateMutability: "view",
-    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     outputs: [
       {
         name: "",
         type: "tuple",
         internalType: "struct Marketplace.CreatorStat",
         components: [
-          { name: "totalSales", type: "uint256", internalType: "uint256" },
-          { name: "totalVolume", type: "uint256", internalType: "uint256" },
-          { name: "lastSaleAt", type: "uint256", internalType: "uint256" },
+          {
+            name: "totalSales",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "totalVolume",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
+    stateMutability: "view",
   },
   {
     type: "function",
     name: "getEligibleRules",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "target",
+        type: "uint8",
+        internalType: "enum BadgeRuleRegistry.BadgeTarget",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+    ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWork",
     inputs: [
-      { name: "account", type: "address", internalType: "address" },
-      { name: "target", type: "uint8", internalType: "enum BadgeTarget" },
+      {
+        name: "workId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
     ],
-    outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Marketplace.Listing",
+        components: [
+          {
+            name: "creator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "price",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "active",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "sold",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "identityMetadataURI",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "identityToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IdentityToken",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "listWork",
+    inputs: [
+      {
+        name: "workId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "price",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "owner",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "purchase",
+    inputs: [
+      {
+        name: "workId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "reputationBadge",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract ReputationBadge",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "setBadgeContract",
+    inputs: [
+      {
+        name: "newBadge",
+        type: "address",
+        internalType: "contract ReputationBadge",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setBadgeRuleRegistry",
+    inputs: [
+      {
+        name: "newRegistry",
+        type: "address",
+        internalType: "contract BadgeRuleRegistry",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setBuyerWelcomeAmount",
+    inputs: [
+      {
+        name: "newAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setDataFeed",
+    inputs: [
+      {
+        name: "newFeed",
+        type: "address",
+        internalType: "contract ReputationDataFeed",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setIdentityMetadataURI",
+    inputs: [
+      {
+        name: "newURI",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "settlementToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IMintableERC20",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "transferOwnership",
+    inputs: [
+      {
+        name: "newOwner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "event",
-    anonymous: false,
-    name: "WorkListed",
+    name: "BadgeAwarded",
     inputs: [
-      { name: "workId", type: "bytes32", indexed: true, internalType: "bytes32" },
-      { name: "creator", type: "address", indexed: true, internalType: "address" },
-      { name: "price", type: "uint256", indexed: false, internalType: "uint256" },
-      { name: "metadataURI", type: "string", indexed: false, internalType: "string" },
+      {
+        name: "account",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "ruleId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
     ],
+    anonymous: false,
   },
   {
     type: "event",
+    name: "OwnershipTransferred",
+    inputs: [
+      {
+        name: "previousOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "newOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
     anonymous: false,
+  },
+  {
+    type: "event",
     name: "PurchaseCompleted",
     inputs: [
-      { name: "workId", type: "bytes32", indexed: true, internalType: "bytes32" },
-      { name: "buyer", type: "address", indexed: true, internalType: "address" },
-      { name: "creator", type: "address", indexed: false, internalType: "address" },
-      { name: "amount", type: "uint256", indexed: false, internalType: "uint256" },
-      { name: "purchaseId", type: "bytes32", indexed: false, internalType: "bytes32" },
+      {
+        name: "buyer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "creator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "workId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "price",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
+    anonymous: false,
   },
   {
     type: "event",
-    anonymous: false,
-    name: "BadgeIssued",
+    name: "WorkDeactivated",
     inputs: [
-      { name: "account", type: "address", indexed: true, internalType: "address" },
-      { name: "ruleId", type: "uint256", indexed: true, internalType: "uint256" },
-      { name: "badgeId", type: "uint256", indexed: false, internalType: "uint256" },
+      {
+        name: "workId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "caller",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
     ],
+    anonymous: false,
   },
-] as const
+  {
+    type: "event",
+    name: "WorkListed",
+    inputs: [
+      {
+        name: "workId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "creator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "price",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+] as const;
 
 // ReputationDataFeed ABI - Aggregated statistics
 export const REPUTATION_DATA_FEED_ABI = [
@@ -689,4 +1208,4 @@ export const REPUTATION_DATA_FEED_ABI = [
       },
     ],
   },
-] as const
+] as const;

@@ -7,7 +7,7 @@ import { Edit, Lock, Twitter, Github, Globe } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { mockBusinessCards, mockUsers } from "@/lib/mock-data"
+// TODO: 从 Supabase 获取用户名片数据
 
 interface BusinessCardDisplayProps {
   userId: string
@@ -15,8 +15,9 @@ interface BusinessCardDisplayProps {
 }
 
 export function BusinessCardDisplay({ userId, isOwner }: BusinessCardDisplayProps) {
-  const user = mockUsers.find((u) => u.id === userId)
-  const businessCard = mockBusinessCards.find((bc) => bc.userId === userId)
+  // TODO: 从 Supabase 获取用户和名片数据
+  const user = null
+  const businessCard = null
   const [isAcquired, setIsAcquired] = useState(isOwner)
 
   if (!user) return null

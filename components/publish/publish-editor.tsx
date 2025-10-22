@@ -15,22 +15,34 @@ import { PreviewModal } from "@/components/publish/preview-modal"
 import { Eye, Send } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import type { Product } from "@/lib/mock-data"
+import type { Product } from "@/lib/types"
 import { usePosts } from "@/lib/posts-context"
+import { useListWork } from "@/lib/contracts/hooks/use-marketplace-v2"
+import { useCurrentUser } from "@/lib/hooks/use-current-user"
+import { createPost } from "@/lib/supabase/api"
+import { parseEther } from "viem"
 
 export function PublishEditor() {
   const router = useRouter()
   const { addPost } = usePosts()
+  const { user, isAuthenticated } = useCurrentUser()
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
   const [images, setImages] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [hasPaidContent, setHasPaidContent] = useState(false)
+  const [paidPrice, setPaidPrice] = useState<number>(9.9)
+  const [paidContent, setPaidContent] = useState("")
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
   const [isPublishing, setIsPublishing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-
+  const { listWork } = useListWork()
   const handlePublish = async () => {
+    if (!isAuthenticated || !user) {
+      toast.error("请先连接钱包")
+      return
+    }
+
     if (!title.trim()) {
       toast.error("请输入标题")
       return
@@ -44,13 +56,42 @@ export function PublishEditor() {
       return
     }
 
+    if (hasPaidContent && (!paidPrice || paidPrice <= 0)) {
+      toast.error("请设置付费内容价格")
+      return
+    }
+
     setIsPublishing(true)
 
-    console.log("[v0] Publishing post:", { title, body, images, tags, hasPaidContent, selectedProducts })
+    try {
+      console.log("[Publishing] Creating post in Supabase:", { 
+        title, 
+        body, 
+        images, 
+        tags, 
+        hasPaidContent, 
+        paidPrice 
+      })
 
-    setTimeout(() => {
+      const { data: newPost, error } = await createPost({
+        userId: user.id,
+        walletAddress: user.wallet_address,
+        title,
+        content: body,
+        images,
+        tags,
+        isPaid: hasPaidContent,
+        price: hasPaidContent ? paidPrice : undefined,
+        paidContent: hasPaidContent ? paidContent : undefined,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      // Also add to local context for immediate UI update
       addPost({
-        userId: "1",
+        userId: user.id,
         title,
         body,
         images,
@@ -60,10 +101,17 @@ export function PublishEditor() {
       })
 
       toast.success("发布成功！")
-      console.log("[v0] Post published successfully")
+      console.log("[Publishing] Post created successfully:", newPost)
+
+      
 
       router.push("/")
-    }, 1000)
+    } catch (error) {
+      console.error("[Publishing] Error creating post:", error)
+      toast.error("发布失败，请重试")
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   const handleBackClick = (e: React.MouseEvent) => {

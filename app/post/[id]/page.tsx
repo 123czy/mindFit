@@ -6,14 +6,21 @@ import { PostAuthorCard } from "@/components/post/post-author-card"
 import { PostInteractionBar } from "@/components/post/post-interaction-bar"
 import { PaidContentSection } from "@/components/post/paid-content-section"
 import { CommentSection } from "@/components/comment/comment-section"
-import { getPostById } from "@/lib/mock-data"
+import { getPostById, getProductsByPostId } from "@/lib/supabase/api"
+import { mapDbPostToPost } from "@/lib/types"
 
-export default function PostDetailPage({ params }: { params: { id: string } }) {
-  const post = getPostById(params.id)
+export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { data: dbPost, error } = await getPostById(id)
 
-  if (!post) {
+  if (error || !dbPost) {
     notFound()
   }
+
+  // 获取关联的商品
+  const { data: products } = await getProductsByPostId('e0d74a12-5942-4f29-89da-2f3c07a920a0')
+
+  const post = mapDbPostToPost(dbPost as any, products || [])
 
   return (
     <div className="min-h-screen bg-background">

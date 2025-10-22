@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Search } from "lucide-react"
-import { mockProducts, type Product } from "@/lib/mock-data"
+import type { Product } from "@/lib/types"
 import Image from "next/image"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
+import { useProducts } from "@/lib/hooks/use-products"
 
 interface ProductSelectionModalProps {
   open: boolean
@@ -21,11 +22,12 @@ interface ProductSelectionModalProps {
 export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = [] }: ProductSelectionModalProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const { products, isLoading } = useProducts({ limit: 100 })
 
   // Filter available products
   const availableProducts = useMemo(() => {
-    return mockProducts.filter((p) => !excludeIds.includes(p.id))
-  }, [excludeIds])
+    return products.filter((p) => !excludeIds.includes(p.id))
+  }, [products, excludeIds])
 
   // Filter by search
   const filteredProducts = useMemo(() => {
@@ -50,7 +52,7 @@ export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = []
       toast.error("请至少选择一个商品")
       return
     }
-    const selected = mockProducts.filter((p) => selectedIds.includes(p.id))
+    const selected = products.filter((p) => selectedIds.includes(p.id))
     onSelect(selected)
     setSelectedIds([])
     setSearchQuery("")

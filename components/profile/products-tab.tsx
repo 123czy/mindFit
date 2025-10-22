@@ -1,8 +1,11 @@
+"use client"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Empty } from "@/components/ui/empty"
-import { mockProducts } from "@/lib/mock-data"
+import { useProducts } from "@/lib/hooks/use-products"
+import { Loader2 } from "lucide-react"
 
 interface ProductsTabProps {
   userId: string
@@ -10,7 +13,7 @@ interface ProductsTabProps {
 }
 
 export function ProductsTab({ userId, isOwner }: ProductsTabProps) {
-  const userProducts = mockProducts.filter((p) => p.userId === userId)
+  const { products, isLoading, error } = useProducts({ userId })
 
   return (
     <Tabs defaultValue="published">
@@ -20,11 +23,17 @@ export function ProductsTab({ userId, isOwner }: ProductsTabProps) {
       </TabsList>
 
       <TabsContent value="published" className="space-y-4">
-        {userProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : error ? (
+          <Empty title="加载失败" description="请稍后重试" />
+        ) : products.length === 0 ? (
           <Empty title="暂无产品" description={isOwner ? "创建你的第一个产品吧" : "该用户还没有发布产品"} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {userProducts.map((product) => (
+            {products.map((product) => (
               <Card key={product.id}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between">

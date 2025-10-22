@@ -37,7 +37,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 glass-effect shadow-apple">
-      <div className="container mx-auto px-6">
+      <div className="mx-auto px-6">
         <div className="flex h-16 items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-apple transition-apple group-hover:shadow-apple-lg group-hover:scale-105 active-press">

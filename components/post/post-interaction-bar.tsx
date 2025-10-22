@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Heart, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { Post } from "@/lib/mock-data"
+import type { Post } from "@/lib/types"
 
 interface PostInteractionBarProps {
   post: Post

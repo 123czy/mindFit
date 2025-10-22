@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Share2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import type { Post } from "@/lib/mock-data"
+import type { Post } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 

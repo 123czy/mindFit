@@ -1,62 +1,62 @@
 // Mock data for the 炒词 platform
 
 export interface User {
-  id: string
-  username: string
-  email: string
-  avatar: string
-  bio?: string
+  id: string;
+  username: string;
+  email: string;
+  avatar: string;
+  bio?: string;
 }
 
 export interface BusinessCard {
-  id: string
-  userId: string
-  bio: string
-  price: number
-  isFree: boolean
-  socialLinks: { platform: string; url: string }[]
-  highlights: string[]
+  id: string;
+  userId: string;
+  bio: string;
+  price: number;
+  isFree: boolean;
+  socialLinks: { platform: string; url: string }[];
+  highlights: string[];
 }
 
 export interface Product {
-  id: string
-  userId: string
-  title: string
-  description: string
-  price: number
-  isFree: boolean
-  stockLimit: number | null
-  stockRemaining: number
-  contentType: "text" | "file" | "prompt"
-  contentData: any
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  price: number;
+  isFree: boolean;
+  stockLimit: number | null;
+  stockRemaining: number;
+  contentType: "text" | "file" | "prompt";
+  contentData: any;
 }
 
 export interface Post {
-  id: string
-  userId: string
-  title: string
-  body: string
-  images: string[]
-  hasPaidContent: boolean
-  likeCount: number
-  commentCount: number
-  viewCount: number
-  createdAt: string
-  author: User
-  products?: Product[]
-  tags: string[]
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  images: string[];
+  hasPaidContent: boolean;
+  likeCount: number;
+  commentCount: number;
+  viewCount: number;
+  createdAt: string;
+  author: User;
+  products?: Product[];
+  tags: string[];
 }
 
 export interface Comment {
-  id: string
-  postId: string
-  userId: string
-  parentCommentId: string | null
-  content: string
-  likeCount: number
-  createdAt: string
-  author: User
-  replies?: Comment[]
+  id: string;
+  postId: string;
+  userId: string;
+  parentCommentId: string | null;
+  content: string;
+  likeCount: number;
+  createdAt: string;
+  author: User;
+  replies?: Comment[];
 }
 
 // Mock Users
@@ -82,7 +82,7 @@ export const mockUsers: User[] = [
     avatar: "/artist-avatar.png",
     bio: "Exploring AI art and generative design",
   },
-]
+];
 
 // Mock Products
 export const mockProducts: Product[] = [
@@ -90,8 +90,9 @@ export const mockProducts: Product[] = [
     id: "p1",
     userId: "1",
     title: "Advanced Midjourney Prompts Pack",
-    description: "Collection of 50+ professional Midjourney prompts for stunning visuals",
-    price: 29.99,
+    description:
+      "Collection of 50+ professional Midjourney prompts for stunning visuals",
+    price: 9.99,
     isFree: false,
     stockLimit: 100,
     stockRemaining: 87,
@@ -115,7 +116,7 @@ export const mockProducts: Product[] = [
     userId: "2",
     title: "AI Image Generation Guide",
     description: "Complete guide to creating professional AI images",
-    price: 49.99,
+    price: 9.99,
     isFree: false,
     stockLimit: 50,
     stockRemaining: 23,
@@ -170,7 +171,7 @@ export const mockProducts: Product[] = [
     contentType: "text",
     contentData: { pack: [] },
   },
-]
+];
 
 // Mock Posts
 export const mockPosts: Post[] = [
@@ -179,7 +180,11 @@ export const mockPosts: Post[] = [
     userId: "1",
     title: "Creating Stunning AI Art with Advanced Prompting Techniques",
     body: "Discover how to craft perfect prompts for AI image generation. This comprehensive guide covers everything from basic concepts to advanced techniques that will transform your AI art workflow.",
-    images: ["/ai-generated-art-landscape.jpg", "/futuristic-cityscape.png", "/abstract-digital-composition.png"],
+    images: [
+      "/ai-generated-art-landscape.jpg",
+      "/futuristic-cityscape.png",
+      "/abstract-digital-composition.png",
+    ],
     hasPaidContent: true,
     likeCount: 234,
     commentCount: 45,
@@ -209,7 +214,11 @@ export const mockPosts: Post[] = [
     userId: "3",
     title: "Exploring the Future of Generative AI in Design",
     body: "A deep dive into how generative AI is revolutionizing the design industry. From concept to execution, learn how AI tools are changing creative workflows.",
-    images: ["/futuristic-design.png", "/ai-interface-design.jpg", "/digital-innovation.png"],
+    images: [
+      "/futuristic-design.png",
+      "/ai-interface-design.jpg",
+      "/digital-innovation.png",
+    ],
     hasPaidContent: false,
     likeCount: 892,
     commentCount: 156,
@@ -292,7 +301,7 @@ export const mockPosts: Post[] = [
     products: [mockProducts[6]],
     tags: ["AI", "Cross-modal", "Applications"],
   },
-]
+];
 
 // Mock Comments
 export const mockComments: Comment[] = [
@@ -322,12 +331,13 @@ export const mockComments: Comment[] = [
     postId: "1",
     userId: "1",
     parentCommentId: "c1",
-    content: "Thank you! I'm planning to release more advanced content soon. Stay tuned!",
+    content:
+      "Thank you! I'm planning to release more advanced content soon. Stay tuned!",
     likeCount: 15,
     createdAt: "2024-01-15T14:00:00Z",
     author: mockUsers[0],
   },
-]
+];
 
 // Mock Business Cards
 export const mockBusinessCards: BusinessCard[] = [
@@ -342,24 +352,28 @@ export const mockBusinessCards: BusinessCard[] = [
       { platform: "GitHub", url: "https://github.com/aicreatorpro" },
       { platform: "Website", url: "https://aicreatorpro.com" },
     ],
-    highlights: ["/portfolio-work-1.png", "/portfolio-work-2.jpg", "/portfolio-work-3.jpg"],
+    highlights: [
+      "/portfolio-work-1.png",
+      "/portfolio-work-2.jpg",
+      "/portfolio-work-3.jpg",
+    ],
   },
-]
+];
 
 // Helper function to get user by ID
 export const getUserById = (id: string): User | undefined => {
-  return mockUsers.find((user) => user.id === id)
-}
+  return mockUsers.find((user) => user.id === id);
+};
 
 // Helper function to get posts with pagination
 export const getPosts = (limit = 20, offset = 0): Post[] => {
-  return mockPosts.slice(offset, offset + limit)
-}
+  return mockPosts.slice(offset, offset + limit);
+};
 
 // Helper function to get post by ID
 export const getPostById = (id: string): Post | undefined => {
-  return mockPosts.find((post) => post.id === id)
-}
+  return mockPosts.find((post) => post.id === id);
+};
 
 // Helper function to get comments for a post
 export const getCommentsByPostId = (postId: string): Comment[] => {
@@ -367,6 +381,8 @@ export const getCommentsByPostId = (postId: string): Comment[] => {
     .filter((comment) => comment.postId === postId && !comment.parentCommentId)
     .map((comment) => ({
       ...comment,
-      replies: mockComments.filter((reply) => reply.parentCommentId === comment.id),
-    }))
-}
+      replies: mockComments.filter(
+        (reply) => reply.parentCommentId === comment.id
+      ),
+    }));
+};

@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const hotTopics = [
-  { rank: 1, title: "午后狂飙！创业板迎来大反弹", highlight: true },
-  { rank: 2, title: "自主EDA！国产软件概念爆发" },
-  { rank: 3, title: "新闻来概念迎调整，新茶应好于大盘" },
+  { rank: 1, title: "Sora AI 2.0发布重大更新", highlight: true },
   { rank: 4, title: "AI大模型应用落地加速" },
   { rank: 5, title: "Midjourney V6更新重大功能" },
+  { rank: 6, title: "Nano banana发布重大更新" },
 ]
 
 const aiTools = [

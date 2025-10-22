@@ -58,7 +58,7 @@ export function WalletTab({ userId }: WalletTabProps) {
         <CardHeader className="bg-gradient-to-br from-primary/5 to-primary/10">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Wallet className="h-5 w-5 text-primary" />
-            USDT 余额
+            mUSDT 余额
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
@@ -70,7 +70,7 @@ export function WalletTab({ userId }: WalletTabProps) {
           ) : (
             <div className="space-y-6">
               <div className="text-5xl font-bold text-foreground tracking-tight">
-                {formattedBalance} <span className="text-2xl text-muted-foreground">USDT</span>
+                {formattedBalance} <span className="text-2xl text-muted-foreground">mUSDT</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ export function WalletTab({ userId }: WalletTabProps) {
                   </div>
                   <div className={`text-lg font-bold ${tx.type === "income" ? "text-green-600" : "text-red-600"}`}>
                     {tx.type === "income" ? "+" : "-"}
-                    {tx.amount} USDT
+                    {tx.amount} mUSDT
                   </div>
                 </div>
               ))}

@@ -5,7 +5,7 @@ import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
-import type { Product } from "@/lib/mock-data"
+import type { Product } from "@/lib/types"
 
 interface PreviewModalProps {
   open: boolean

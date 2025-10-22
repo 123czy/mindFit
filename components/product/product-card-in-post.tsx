@@ -10,7 +10,8 @@ import { useTokenBalance, useApproveToken, usePurchaseProduct, useHasPurchasedPr
 import { getContractAddress } from "@/lib/contracts/addresses"
 import { formatUnits, parseUnits } from "viem"
 import { toast } from "sonner"
-import type { Product } from "@/lib/mock-data"
+import type { Product } from "@/lib/types"
+import { useTestToken } from "@/lib/contracts/hooks/use-test-token"
 
 interface ProductCardInPostProps {
   product: Product
@@ -21,9 +22,18 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
   const chainId = useChainId()
   const [purchaseStep, setPurchaseStep] = useState<"idle" | "approving" | "purchasing">("idle")
   const [showContent, setShowContent] = useState(false)
+  const {
+    symbol,
+    formattedBalance,
+    isLoadingBalance,
+    hasLowBalance,
+  } = useTestToken()
 
-  const productId = BigInt(product.id.replace("p", ""))
+  // 使用链上商品 ID，如果不存在则使用默认值或跳过智能合约交互
+  const productId = 0x548a00cc952c3e0ad85c0ebeb04d409bba25980bc776c2dcc778f94a05efaf61
   const marketplaceAddress = getContractAddress("MARKETPLACE", chainId)
+  const tokenAddress = getContractAddress("TEST_TOKEN", chainId)
+  const hasChainId = !!product.chainProductId
 
   const { data: tokenBalance } = useTokenBalance()
   const { data: hasPurchased } = useHasPurchasedProduct(productId)
@@ -48,7 +58,7 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
   }, [purchaseSuccess])
 
   const handleApproveAndPurchase = async () => {
-    if (!address || !marketplaceAddress) {
+    if (!address || !tokenAddress) {
       toast.error("请先连接钱包")
       return
     }
@@ -63,7 +73,8 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
       console.log("[v0] Starting approval process")
       setPurchaseStep("approving")
       const amount = parseUnits(product.price.toString(), 18)
-      await approve(marketplaceAddress, amount)
+      await approve(tokenAddress, amount)
+      await handlePurchase()
     } catch (error) {
       console.error("[v0] Approve error:", error)
       toast.error("授权失败，请重试")
@@ -73,10 +84,10 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
 
   const handlePurchase = async () => {
     if (!address) return
-
     try {
-      console.log("[v0] Executing purchase for product:", productId)
-      await purchaseProduct(productId, 1n)
+      console.log("[v0] Executing purchase for product:", productId, BigInt(productId))
+      await purchaseProduct(productId)
+      setPurchaseStep("purchasing")
     } catch (error) {
       console.error("[v0] Purchase error:", error)
       toast.error("购买失败，请重试")
@@ -84,9 +95,10 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
     }
   }
 
-  const isAcquired = hasPurchased || showContent
-  const balance = tokenBalance ? formatUnits(tokenBalance as bigint, 18) : "0"
-  const hasEnoughBalance = product.isFree || (tokenBalance && tokenBalance >= parseUnits(product.price.toString(), 18))
+  const isAcquired = false
+  // const isAcquired = hasPurchased || showContent
+  const balance = formattedBalance ? formattedBalance : "0"
+  const hasEnoughBalance = product.isFree || (formattedBalance && Number(formattedBalance) >= product.price)
 
   return (
     <Card className={`transition-apple ${isAcquired ? "border-green-500/50 bg-green-50/5" : "border-border/40"}`}>
@@ -117,11 +129,11 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
               <div className="space-y-0.5">
                 <div className="text-lg font-bold flex items-center gap-1">
                   <Coins className="h-4 w-4 text-yellow-600" />
-                  {product.price} USDT
+                  {product.price} mUSDT
                 </div>
                 {isConnected && (
                   <div className="text-xs text-muted-foreground">
-                    余额: {Number.parseFloat(balance).toFixed(2)} USDT
+                    余额: {Number.parseFloat(balance).toFixed(2)} mUSDT
                   </div>
                 )}
               </div>
@@ -137,6 +149,11 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
           ) : !isConnected ? (
             <Button size="sm" variant="outline" disabled>
               连接钱包购买
+            </Button>
+          ) : !hasChainId ? (
+            <Button size="sm" variant="outline" disabled title="该商品暂未上链">
+              <Lock className="mr-2 h-4 w-4" />
+              暂不可购买
             </Button>
           ) : (
             <Button
@@ -166,7 +183,7 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
 
         {!product.isFree && isConnected && !hasEnoughBalance && !isAcquired && (
           <div className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded">
-            余额不足，需要 {product.price} USDT
+            余额不足，需要 {product.price} mUSDT
           </div>
         )}
 

@@ -1,16 +1,44 @@
-import { http, createConfig } from "wagmi"
-import { mainnet, polygon, bsc, arbitrum, optimism, base, sepolia, polygonAmoy, bscTestnet } from "wagmi/chains"
-import { injected, walletConnect, coinbaseWallet } from "wagmi/connectors"
+import { http, createConfig } from "wagmi";
+import {
+  mainnet,
+  polygon,
+  bsc,
+  arbitrum,
+  optimism,
+  base,
+  sepolia,
+  polygonAmoy,
+  bscTestnet,
+} from "wagmi/chains";
+import { injected, walletConnect, coinbaseWallet } from "wagmi/connectors";
 
 // WalletConnect Project ID (在实际项目中需要从 https://cloud.walletconnect.com/ 获取)
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID"
+const projectId =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ||
+  "8a0a74dcefe143678779a52a48240372";
 
 export const config = createConfig({
-  chains: [mainnet, sepolia, polygon, polygonAmoy, bsc, bscTestnet, arbitrum, optimism, base],
+  chains: [
+    mainnet,
+    sepolia,
+    polygon,
+    polygonAmoy,
+    bsc,
+    bscTestnet,
+    arbitrum,
+    optimism,
+    base,
+  ],
   connectors: [
-    injected({ target: "metaMask" }),
-    walletConnect({ projectId }),
-    coinbaseWallet({ appName: "炒词 Chao Ci" }),
+    injected(),
+    walletConnect({
+      projectId,
+      showQrModal: true,
+    }),
+    coinbaseWallet({
+      appName: "炒词 Chao Ci",
+      appLogoUrl: undefined,
+    }),
   ],
   transports: {
     [mainnet.id]: http(),
@@ -23,7 +51,8 @@ export const config = createConfig({
     [optimism.id]: http(),
     [base.id]: http(),
   },
-})
+  ssr: true,
+});
 
 export const supportedChains = [
   { id: mainnet.id, name: "Ethereum", icon: "⟠", isTestnet: false },
@@ -35,4 +64,4 @@ export const supportedChains = [
   { id: arbitrum.id, name: "Arbitrum", icon: "◉", isTestnet: false },
   { id: optimism.id, name: "Optimism", icon: "◎", isTestnet: false },
   { id: base.id, name: "Base", icon: "◈", isTestnet: false },
-]
+];
