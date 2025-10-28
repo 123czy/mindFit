@@ -1,4 +1,5 @@
-import { Web3Login } from "@/components/auth/web3-login"
+// import { Web3Login } from "@/components/auth/web3-login"
+import { LoginForm } from "@/components/auth/login-form"
 
 export default function LoginPage() {
   return (
@@ -27,7 +28,7 @@ export default function LoginPage() {
 
       {/* Right - Web3 Login */}
       <div className="flex items-center justify-center p-8 bg-background">
-        <Web3Login />
+        <LoginForm />
       </div>
     </div>
   )

@@ -35,18 +35,18 @@ export function SidebarLeft() {
 
   return (
     <div className="sticky top-20 space-y-4">
-      {isConnected && address ? (
+      {false ? (
         <Card className="border-border/40 shadow-apple hover:shadow-apple-lg transition-apple overflow-hidden">
           <CardContent className="p-5">
             <Link href="/profile/AI_Creator_Pro" className="flex items-center gap-3 group">
               <Avatar className="h-12 w-12 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-base font-semibold">
+                {/* <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-base font-semibold">
                   {address.slice(2, 4).toUpperCase()}
-                </AvatarFallback>
+                </AvatarFallback> */}
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">AI Creator</p>
-                <p className="text-xs text-muted-foreground font-mono truncate">{formatAddress(address)}</p>
+                {/* <p className="text-xs text-muted-foreground font-mono truncate">{formatAddress(address)}</p> */}
               </div>
             </Link>
             <div className="flex mt-2">

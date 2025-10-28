@@ -12,7 +12,7 @@ import { formatUnits, parseUnits } from "viem"
 import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 import { useTestToken } from "@/lib/contracts/hooks/use-test-token"
-
+import { ProductDetail } from "@/components/product/product-detail"
 interface ProductCardInPostProps {
   product: Product
 }
@@ -36,7 +36,7 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
   const hasChainId = !!product.chainProductId
 
   const { data: tokenBalance } = useTokenBalance()
-  const { data: hasPurchased } = useHasPurchasedProduct(productId)
+  const { data: hasPurchased } = useHasPurchasedProduct(BigInt(productId))
   const { approve, isPending: isApproving, isSuccess: approveSuccess } = useApproveToken()
   const { purchaseProduct, isPending: isPurchasing, isSuccess: purchaseSuccess } = usePurchaseProduct()
 
@@ -123,7 +123,7 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
 
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            {product.isFree ? (
+            {true ? (
               <div className="text-lg font-bold text-green-600">免费</div>
             ) : (
               <div className="space-y-0.5">
@@ -141,7 +141,7 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
             {product.stockLimit && <p className="text-xs text-muted-foreground">剩余 {product.stockRemaining} 份</p>}
           </div>
 
-          {isAcquired ? (
+          {true ? (
             <Button size="sm" variant="outline" onClick={() => setShowContent(true)}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               查看内容
@@ -181,37 +181,15 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
           )}
         </div>
 
-        {!product.isFree && isConnected && !hasEnoughBalance && !isAcquired && (
-          <div className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded">
-            余额不足，需要 {product.price} mUSDT
-          </div>
-        )}
 
-        {isAcquired && showContent && (
-          <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/40">
-            <div className="text-xs font-medium text-green-600 mb-2 flex items-center gap-1">
+        {true && showContent && (
+          <div className="mt-3 rounded-lg">
+            {/* <div className="text-xs font-medium text-green-600 mb-2 flex items-center gap-1">
               <Unlock className="h-3 w-3" />
               已解锁内容
-            </div>
+            </div> */}
             <div className="text-sm space-y-2">
-              {product.contentType === "text" && (
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-muted-foreground">
-                    这是 {product.title} 的完整内容。包含专业的 AI 绘画工作流程模板、提示词技巧和最佳实践。
-                  </p>
-                  <ul className="text-xs space-y-1 mt-2">
-                    <li>✓ 50+ 专业提示词模板</li>
-                    <li>✓ 完整工作流程指南</li>
-                    <li>✓ 实战案例分析</li>
-                    <li>✓ 终身更新支持</li>
-                  </ul>
-                </div>
-              )}
-              {product.contentType === "file" && (
-                <Button size="sm" variant="outline" className="w-full bg-transparent">
-                  下载文件
-                </Button>
-              )}
+              <ProductDetail />
             </div>
           </div>
         )}

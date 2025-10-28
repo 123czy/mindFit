@@ -5,7 +5,7 @@ import { PostContent } from "@/components/post/post-content"
 import { PostAuthorCard } from "@/components/post/post-author-card"
 import { PaidContentSection } from "@/components/post/paid-content-section"
 import { CommentSection } from "@/components/comment/comment-section"
-import { ProductDetail } from "@/components/product/product-detail"
+
 import { getPostById, getProductsByPostId } from "@/lib/supabase/api"
 import { mapDbPostToPost } from "@/lib/types"
 
@@ -30,6 +30,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           {/* Left Column - Images */}
           <div className="space-y-4">
             <PostImageCarousel images={post.images} />
+            
           </div>
 
           {/* Right Column - Content */}
@@ -37,7 +38,6 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             <PostContent post={post} />
             <PostAuthorCard author={post.author} />
             {post.hasPaidContent && post.products && <PaidContentSection products={post.products} />}
-            <ProductDetail />
           </div>
         </div>
 
