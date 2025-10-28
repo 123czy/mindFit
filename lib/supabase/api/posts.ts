@@ -97,7 +97,7 @@ export async function getPostById(postId: string) {
   try {
     const { data, error } = await supabase
       .from("posts")
-      .select("*, users!inner(id, username, avatar_url, wallet_address)")
+      .select("*, users!inner(id, username,bio, avatar_url, wallet_address)")
       .eq("id", postId)
       .single();
 

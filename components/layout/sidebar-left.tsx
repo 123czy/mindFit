@@ -14,7 +14,7 @@ const navItems = [
   { href: "/", label: "发现", icon: Home },
   { href: "/publish", label: "发布", icon: PenSquare },
   { href: "/notifications", label: "通知", icon: Bell, badge: 3 },
-  { href: "/profile/AI_Creator_Pro?tab=wallet", label: "资产", icon: Wallet },
+  { href: "/profile/AI_Creator_Pro?tab=wallet", label: "我的", icon: Wallet },
 ]
 
 export function SidebarLeft() {

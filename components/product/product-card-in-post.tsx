@@ -101,12 +101,12 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
   const hasEnoughBalance = product.isFree || (formattedBalance && Number(formattedBalance) >= product.price)
 
   return (
-    <Card className={`transition-apple ${isAcquired ? "border-green-500/50 bg-green-50/5" : "border-border/40"}`}>
-      <CardContent className="p-4 space-y-3">
+    <Card className={`p-0 transition-apple ${isAcquired ? "border-green-500/50 bg-green-50/5" : "border-border/40"}`}>
+      <CardContent className="p-4 space-y-0">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 space-y-1">
-            <h4 className="font-semibold text-sm">{product.title}</h4>
-            <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+            <h4 className="font-semibold text-lg">{product.title}</h4>
+            <p className="text-lg text-muted-foreground line-clamp-2">{product.description}</p>
           </div>
           {isAcquired ? (
             <Badge variant="outline" className="text-green-600 border-green-600">
@@ -127,7 +127,7 @@ export function ProductCardInPost({ product }: ProductCardInPostProps) {
               <div className="text-lg font-bold text-green-600">免费</div>
             ) : (
               <div className="space-y-0.5">
-                <div className="text-lg font-bold flex items-center gap-1">
+                <div className="text-base font-bold flex items-center gap-1">
                   <Coins className="h-4 w-4 text-yellow-600" />
                   {product.price} mUSDT
                 </div>

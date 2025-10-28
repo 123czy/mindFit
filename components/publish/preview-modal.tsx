@@ -1,11 +1,13 @@
 "use client"
 
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogHeader } from "@/components/ui/dialog"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
-import type { Product } from "@/lib/types"
+import { PostImageCarousel } from "@/components/post/post-image-carousel"
+import { PostContent } from "@/components/post/post-content"
+import { PostAuthorCard } from "@/components/post/post-author-card"
+import { PaidContentSection } from "@/components/post/paid-content-section"
+import type { Product, Post, User } from "@/lib/types"
 
 interface PreviewModalProps {
   open: boolean
@@ -15,64 +17,81 @@ interface PreviewModalProps {
   images: string[]
   tags: string[]
   products: Product[]
+  currentUser?: {
+    username: string
+    avatar?: string
+    bio?: string
+  }
 }
 
-export function PreviewModal({ open, onClose, title, body, images, tags, products }: PreviewModalProps) {
+export function PreviewModal({ 
+  open, 
+  onClose, 
+  title, 
+  body, 
+  images, 
+  tags, 
+  products,
+  currentUser = { username: "您", avatar: "/placeholder-user.jpg", bio: "" }
+}: PreviewModalProps) {
+  // 构造预览用的Post对象
+  const previewPost: Post = {
+    id: "preview",
+    userId: "preview-user",
+    title: title || "未命名",
+    body: body || "",
+    images: images,
+    hasPaidContent: products.length > 0,
+    price: products.length > 0 ? products[0]?.price : undefined,
+    likeCount: 0,
+    commentCount: 0,
+    viewCount: 0,
+    createdAt: new Date().toISOString(),
+    author: {
+      id: "preview-user",
+      username: currentUser.username,
+      avatar: currentUser.avatar || "/placeholder-user.jpg",
+      bio: currentUser.bio,
+      walletAddress: "",
+      likeCount: 0,
+      commentCount: 0,
+      downloadCount: 0,
+    },
+    products: products,
+    tags: tags,
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-background border-b border-border/40 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">预览</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Images */}
-          {images.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
-              {images.map((img, idx) => (
-                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-muted">
-                  <Image src={img || "/placeholder.svg"} alt={`Preview ${idx + 1}`} fill className="object-cover" />
+      
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0">
+        {/* Header */}
+        <DialogHeader>
+        <DialogTitle className="text-2xl font-bold px-6 pt-4">内容预览</DialogTitle>
+        </DialogHeader>
+        {/* Content - Same layout as post detail page */}
+        <div className="px-6 pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+            {/* Left Column - Images */}
+            <div className="space-y-4">
+              {images.length > 0 ? (
+                <PostImageCarousel images={images} />
+              ) : (
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+                  <p className="text-muted-foreground">暂无图片</p>
                 </div>
-              ))}
+              )}
             </div>
-          )}
 
-          {/* Title */}
-          {title && <h1 className="text-2xl font-bold">{title}</h1>}
-
-          {/* Body */}
-          {body && <p className="text-muted-foreground whitespace-pre-wrap">{body}</p>}
-
-          {/* Tags */}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  #{tag}
-                </Badge>
-              ))}
+            {/* Right Column - Content */}
+            <div className="space-y-6">
+              <PostContent post={previewPost} />
+              <PostAuthorCard author={previewPost.author} />
+              {previewPost.hasPaidContent && previewPost.products && (
+                <PaidContentSection products={previewPost.products} />
+              )}
             </div>
-          )}
-
-          {/* Products */}
-          {products.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold">付费内容</h3>
-              {products.map((product) => (
-                <div key={product.id} className="p-4 rounded-xl border border-border/40 bg-muted/30">
-                  <h4 className="font-medium mb-2">{product.title}</h4>
-                  <p className="text-sm text-muted-foreground mb-2">{product.description}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="text-primary font-semibold">¥{product.price.toFixed(2)}</span>
-                    <span className="text-muted-foreground">库存：{product.stockRemaining}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

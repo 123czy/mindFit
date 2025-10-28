@@ -1,5 +1,5 @@
 import { CommentItem } from "@/components/comment/comment-item"
-import { Empty } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty"
 import type { Comment } from "@/lib/types"
 
 interface CommentListProps {
@@ -8,7 +8,10 @@ interface CommentListProps {
 
 export function CommentList({ comments }: CommentListProps) {
   if (comments.length === 0) {
-    return <Empty title="暂无评论" description="成为第一个评论的人吧" />
+    return <Empty >
+      <EmptyTitle>暂无评论</EmptyTitle>
+      <EmptyDescription>成为第一个评论的人吧</EmptyDescription>
+    </Empty>
   }
 
   return (

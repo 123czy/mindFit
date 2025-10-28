@@ -10,14 +10,14 @@ interface PaidContentSectionProps {
 
 export function PaidContentSection({ products }: PaidContentSectionProps) {
   return (
-    <Card>
+    <Card className="gap-0">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Lock className="h-4 w-4" />
           付费内容
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-0">
         {products.map((product) => (
           <ProductCardInPost key={product.id} product={product} />
         ))}

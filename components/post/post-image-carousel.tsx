@@ -39,7 +39,7 @@ export function PostImageCarousel({ images }: PostImageCarouselProps) {
             <Button
               variant="secondary"
               size="icon"
-              className="absolute left-2 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100"
+              className="absolute cursor-pointer left-2 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100"
               onClick={goToPrevious}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -47,7 +47,7 @@ export function PostImageCarousel({ images }: PostImageCarouselProps) {
             <Button
               variant="secondary"
               size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100"
+              className="absolute cursor-pointer right-2 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100"
               onClick={goToNext}
             >
               <ChevronRight className="h-4 w-4" />

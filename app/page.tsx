@@ -2,12 +2,14 @@ import { Navbar } from "@/components/layout/navbar"
 import { SidebarLeft } from "@/components/layout/sidebar-left"
 import { SidebarRight } from "@/components/layout/sidebar-right"
 import { FeedContainer } from "@/components/feed/feed-container"
+import { HeroSwiper } from "@/components/hero/hero-swiper"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      {/* <FilterTabs /> */}
+
+      {/* Main Content */}
       <div className="mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[240px_1fr_320px] gap-6">
           {/* Left Sidebar */}
@@ -16,8 +18,14 @@ export default function HomePage() {
           </aside>
 
           {/* Main Feed */}
-          <main>
-            <FeedContainer />
+          <main className="space-y-10">
+            {/* Hero Spotlight Section */}
+            <HeroSwiper />
+            
+            {/* Trending Projects */}
+            <div>
+              <FeedContainer />
+            </div>
           </main>
 
           {/* Right Sidebar */}

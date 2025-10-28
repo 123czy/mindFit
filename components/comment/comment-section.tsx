@@ -15,9 +15,9 @@ export function CommentSection({ postId }: CommentSectionProps) {
       <CardHeader>
         <CardTitle>评论 ({comments.length})</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <CommentInput postId={postId} />
+      <CardContent className="space-y-2">
         <CommentList comments={comments} />
+        <CommentInput postId={postId} />
       </CardContent>
     </Card>
   )

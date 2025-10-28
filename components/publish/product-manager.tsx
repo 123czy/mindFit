@@ -4,12 +4,12 @@ import { useState } from "react"
 import { Plus, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductSelectionModal } from "@/components/publish/product-selection-modal"
-import { ProductEditModal } from "@/components/publish/product-edit-modal"
 import type { Product } from "@/lib/types"
 import Image from "next/image"
 import { toast } from "sonner"
 import { useListWork } from "@/lib/contracts/hooks/use-marketplace-v2"
 import { parseEther } from "viem"
+import { CreateProductForm } from "@/components/product/create-product-form"
 
 interface ProductManagerProps {
   selectedProducts: Product[]
@@ -142,14 +142,14 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
         excludeIds={selectedProducts.map((p) => p.id)}
       />
 
-      <ProductEditModal
+       <CreateProductForm
         open={showEditModal}
-        onClose={() => {
+        onOpenChange={() => {
           setShowEditModal(false)
           setEditingProduct(null)
         }}
-        product={editingProduct}
-        onSave={handleProductUpdated}
+        postId={editingProduct?.id}
+        onSuccess={handleProductUpdated}
       />
 
     </>

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Share2, Clock } from "lucide-react"
+import { Share2, Clock, Heart, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { Post } from "@/lib/types"
@@ -28,10 +28,12 @@ export function PostContent({ post }: PostContentProps) {
           {timeAgo}
         </div>
         <div>{post.viewCount} 浏览</div>
+        <div>{post.likeCount} 点赞</div>
+        <div>{post.commentCount} 评论</div>
       </div>
 
       {/* Body */}
-      <div className="prose prose-sm max-w-none">
+      <div className="prose prose-sm max-w-none whitespace-pre-wrap">
         <p className="text-pretty leading-relaxed">{post.body}</p>
       </div>
 
@@ -45,10 +47,21 @@ export function PostContent({ post }: PostContentProps) {
       </div>
 
       {/* Share Button */}
-      <Button variant="outline" size="sm" className="w-full bg-transparent">
+      <div className="flex justify-between  gap-2 items-center">
+      <Button variant="outline" size="sm" className="cursor-pointer bg-transparent">
+        <Heart className="mr-2 h-4 w-4" />
+        点赞
+      </Button>
+      <Button variant="outline" size="sm" className="cursor-pointer bg-transparent">
+        <Star className="mr-2 h-4 w-4" />
+        收藏
+      </Button>
+      <Button variant="outline" size="sm" className="cursor-pointer flex-1 bg-transparent">
         <Share2 className="mr-2 h-4 w-4" />
         分享
       </Button>
+      </div>
+      
     </div>
   )
 }

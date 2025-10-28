@@ -3,7 +3,7 @@
 import { useState } from "react"
 
 
-const categories = ["全部", "名片收录", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点"]
+const categories = ["全部", "我的关注", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点"]
 
 export function FilterTabs() {
   const [activeCategory, setActiveCategory] = useState("全部")
@@ -17,7 +17,7 @@ export function FilterTabs() {
               key={category}
               onClick={() => setActiveCategory(category)}
               className={`
-                text-sm whitespace-nowrap transition-all duration-200 relative pb-0.5
+                cursor-pointer text-sm whitespace-nowrap transition-all duration-200 relative pb-0.5
                 ${
                   activeCategory === category
                     ? "text-foreground font-semibold"

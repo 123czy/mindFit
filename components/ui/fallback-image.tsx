@@ -30,6 +30,9 @@ export function FallbackImage({
 }: FallbackImageProps) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
+  
+  // 清理URL，移除末尾的空格和控制字符
+  const cleanSrc = src?.trimEnd() || "/placeholder.svg"
 
   if (error) {
     return (
@@ -65,19 +68,19 @@ export function FallbackImage({
       )}
 
       <Image
-        src={src || "/placeholder.svg"}
+        src={cleanSrc}
         alt={alt}
         fill={fill}
         width={!fill ? width : undefined}
         height={!fill ? height : undefined}
         className={cn(className, loading && "opacity-0")}
         onError={() => {
-          console.log("[v0] Image failed to load:", src)
+          console.log("[v0] Image failed to load:", cleanSrc)
           setError(true)
           setLoading(false)
         }}
         onLoad={() => {
-          console.log("[v0] Image loaded successfully:", src)
+          console.log("[v0] Image loaded successfully:", cleanSrc)
           setLoading(false)
         }}
         priority={priority}

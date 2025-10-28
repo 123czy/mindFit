@@ -30,14 +30,14 @@ export function SidebarRight() {
   return (
     <div className="sticky top-20 space-y-4">
       <Card className="border-border/40 shadow-apple hover:shadow-apple-lg transition-apple">
-        <CardHeader className="pb-3">
+        <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Flame className="h-4 w-4 text-orange-500" />
               热门话题
             </CardTitle>
             <Button
-              variant="ghost"
+              variant="link"
               size="sm"
               className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground transition-apple"
               asChild
@@ -79,14 +79,14 @@ export function SidebarRight() {
       </Card>
 
       <Card className="border-border/40 shadow-apple hover:shadow-apple-lg transition-apple">
-        <CardHeader className="pb-3">
+        <CardHeader >
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Rocket className="h-4 w-4 text-primary" />
               工具榜
             </CardTitle>
             <Button
-              variant="ghost"
+              variant="link"
               size="sm"
               className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground transition-apple"
               asChild

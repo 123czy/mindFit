@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,15 +12,48 @@ import { ImageUploader } from "@/components/publish/image-uploader"
 import { TagSelector } from "@/components/publish/tag-selector"
 import { ProductManager } from "@/components/publish/product-manager"
 import { PreviewModal } from "@/components/publish/preview-modal"
-import { Eye, Send } from "lucide-react"
+import { CoverSelector } from "@/components/publish/cover-selector"
+import { VariableForm } from "@/components/publish/variable-form"
+import { Eye, Save, Send } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 import { usePosts } from "@/lib/posts-context"
-import { useListWork } from "@/lib/contracts/hooks/use-marketplace-v2"
 import { useCurrentUser } from "@/lib/hooks/use-current-user"
 import { createPost } from "@/lib/supabase/api"
-import { parseEther } from "viem"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createTextImage } from "@/lib/utils/text-to-image"
+
+enum PublishType {
+  picture = "picture",
+  video = "video",
+  document = "document"
+}
+
+type Cover = "cover1" | "cover2" | "cover3" | "cover4"
+
+const covers = [
+  {
+    id: "cover1",
+    src: "https://otahonvekikpyxyjfhdz.supabase.co/storage/v1/object/sign/mindFit_web3/cover1_bg.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lMzg2NDY1My1lMDI0LTQxYzUtYTNhYi1hMjYwMGMzYjEyNGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtaW5kRml0X3dlYjMvY292ZXIxX2JnLnBuZyIsImlhdCI6MTc2MTQ2MjQ3OSwiZXhwIjoxNzkyOTk4NDc5fQ.rkx1B4bblSzROtqJfGpEDPdh1sFng3Zv982aX9toIII",
+    title: "封面1"
+  },
+  {
+    id: "cover2",
+    src: "https://otahonvekikpyxyjfhdz.supabase.co/storage/v1/object/sign/mindFit_web3/cover2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lMzg2NDY1My1lMDI0LTQxYzUtYTNhYi1hMjYwMGMzYjEyNGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtaW5kRml0X3dlYjMvY292ZXIyLnBuZyIsImlhdCI6MTc2MTQ1NjA2OCwiZXhwIjoxNzkyOTkyMDY4fQ.tDtke2RgFQ-svbPmb3x-LHIKWpmz-6WQekAHiEhL6uM",
+    title: "封面2"
+  },
+  {
+    id: "cover3",
+    src: "https://otahonvekikpyxyjfhdz.supabase.co/storage/v1/object/sign/mindFit_web3/cover3_bg.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lMzg2NDY1My1lMDI0LTQxYzUtYTNhYi1hMjYwMGMzYjEyNGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtaW5kRml0X3dlYjMvY292ZXIzX2JnLnBuZyIsImlhdCI6MTc2MTQ2MjQ5MywiZXhwIjoxNzkyOTk4NDkzfQ.1t_w6KJV-qnaLN4nX60ME5TuTu31-BLQjzttOv8_reU",
+    title: "封面3"
+  },
+  {
+    id: "cover4",
+    src: "https://otahonvekikpyxyjfhdz.supabase.co/storage/v1/object/sign/mindFit_web3/cover4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9lMzg2NDY1My1lMDI0LTQxYzUtYTNhYi1hMjYwMGMzYjEyNGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtaW5kRml0X3dlYjMvY292ZXI0LnBuZyIsImlhdCI6MTc2MTQ1NjExMywiZXhwIjoxNzkyOTkyMTEzfQ.66k6ZOmjc_ai58JiJ2Z0Stv1l4d9loa6JEd3EgDKoYs",
+    title: "封面4"
+  }
+]
 
 export function PublishEditor() {
   const router = useRouter()
@@ -30,13 +63,15 @@ export function PublishEditor() {
   const [body, setBody] = useState("")
   const [images, setImages] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>([])
-  const [hasPaidContent, setHasPaidContent] = useState(false)
   const [paidPrice, setPaidPrice] = useState<number>(9.9)
   const [paidContent, setPaidContent] = useState("")
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
   const [isPublishing, setIsPublishing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-  const { listWork } = useListWork()
+  const [publishType, setPublishType] = useState<PublishType>(PublishType.picture)
+  const [cover, setCover] = useState<Cover>("cover1")
+  const [documentPreviewImage, setDocumentPreviewImage] = useState<string>("")
+  const [variables, setVariables] = useState<Array<{id: string, type: string, value: string}>>([])
   const handlePublish = async () => {
     if (!isAuthenticated || !user) {
       toast.error("请先连接钱包")
@@ -56,10 +91,6 @@ export function PublishEditor() {
       return
     }
 
-    if (hasPaidContent && (!paidPrice || paidPrice <= 0)) {
-      toast.error("请设置付费内容价格")
-      return
-    }
 
     setIsPublishing(true)
 
@@ -69,7 +100,6 @@ export function PublishEditor() {
         body, 
         images, 
         tags, 
-        hasPaidContent, 
         paidPrice 
       })
 
@@ -80,9 +110,9 @@ export function PublishEditor() {
         content: body,
         images,
         tags,
-        isPaid: hasPaidContent,
-        price: hasPaidContent ? paidPrice : undefined,
-        paidContent: hasPaidContent ? paidContent : undefined,
+        isPaid: false,
+        price: paidPrice,
+        paidContent: paidContent,
       })
 
       if (error) {
@@ -98,6 +128,9 @@ export function PublishEditor() {
         hasPaidContent,
         products: selectedProducts.length > 0 ? selectedProducts : undefined,
         tags,
+        likeCount: 0,
+        commentCount: 0,
+        viewCount: 0,
       })
 
       toast.success("发布成功！")
@@ -122,37 +155,119 @@ export function PublishEditor() {
     }
   }
 
-  const canPublish = title.trim() && body.trim() && images.length > 0
+  const handleCoverSelect = (cover: string) => {
+    setCover(cover as Cover)
+  }
+
+  // 提取body中的变量
+  useEffect(() => {
+    const regex = /\[([^\]]+)\]/g
+    const matches = Array.from(body.matchAll(regex))
+    const extractedTypes = matches.map(match => match[1])
+    
+    // 保留已有变量的值，只更新新增的变量
+    setVariables(prevVariables => {
+      // 为每个类型创建一个队列，记录所有可能的变量值
+      const typeToValuesMap = new Map<string, string[]>()
+      
+      // 从之前的状态构建一个队列
+      prevVariables.forEach(v => {
+        if (!typeToValuesMap.has(v.type)) {
+          typeToValuesMap.set(v.type, [])
+        }
+        typeToValuesMap.get(v.type)!.push(v.value)
+      })
+      
+      // 构建新的变量列表
+      const newVariables: Array<{id: string, type: string, value: string}> = []
+      
+      extractedTypes.forEach((type, index) => {
+        const id = `${type}-${Date.now()}-${index}`
+        
+        // 从队列中获取值
+        const values = typeToValuesMap.get(type) || []
+        const value = values.length > 0 ? values.shift()! : ''
+        
+        newVariables.push({
+          id,
+          type,
+          value
+        })
+      })
+      
+      return newVariables
+    })
+  }, [body])
+
+  // 当文档类型且内容变化时生成预览图片
+  useEffect(() => {
+    const generateDocumentPreview = async () => {
+      if (publishType === PublishType.document && title && body) {
+        try {
+          // 获取当前选中的封面URL
+          const selectedCover = covers.find(c => c.id === cover)
+          if (selectedCover) {
+            const previewImage = await createTextImage({
+              title,
+              body,
+              coverImageUrl: selectedCover.src,
+              type:cover
+            })
+            setDocumentPreviewImage(previewImage)
+          }
+        } catch (error) {
+          console.error('生成预览图片失败:', error)
+        }
+      } else {
+        setDocumentPreviewImage("")
+      }
+    }
+
+    generateDocumentPreview()
+  }, [title, body, cover, publishType])
+
+  // 验证所有变量是否都已填写
+  const allVariablesFilled = variables.length === 0 || variables.every(v => v.value.trim() !== '')
+  
+  const canPublish = title.trim() && body.trim() && images.length > 0 && allVariablesFilled
 
   return (
     <>
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-apple">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Link
-              href="/"
-              onClick={handleBackClick}
-              className="flex items-center gap-2 text-lg font-bold hover:text-primary transition-apple"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-                炒
-              </div>
-              <span>炒词</span>
-            </Link>
+            <Select value={publishType} onValueChange={(value) => setPublishType(value as PublishType)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="选择发布类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="picture">图文</SelectItem>
+                <SelectItem value="video">视频</SelectItem>
+                <SelectItem value="document">长文</SelectItem>
+              </SelectContent>
+            </Select>
 
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => setShowPreview(true)}
-                className="rounded-xl shadow-apple hover:shadow-apple-lg transition-apple"
+                className="cursor-pointer rounded-xl shadow-apple hover:shadow-apple-lg transition-apple"
               >
                 <Eye className="mr-2 h-4 w-4" />
                 预览
               </Button>
               <Button
+                variant="outline"
+                onClick={() => {}}
+                className="cursor-pointer rounded-xl shadow-apple hover:shadow-apple-lg transition-apple"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                存草稿
+              </Button>
+              <Button
                 onClick={handlePublish}
                 disabled={!canPublish || isPublishing}
-                className="rounded-xl bg-primary hover:bg-primary/90 shadow-apple hover:shadow-apple-lg transition-apple active-press"
+                className="cursor-pointer rounded-xl bg-primary hover:bg-primary/90 shadow-apple hover:shadow-apple-lg transition-apple active-press"
               >
                 <Send className="mr-2 h-4 w-4" />
                 {isPublishing ? "发布中..." : "发布"}
@@ -164,9 +279,9 @@ export function PublishEditor() {
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <div className="space-y-6">
             {/* Image Upload */}
-            <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
+            {publishType === PublishType.picture && <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
               <ImageUploader images={images} onChange={setImages} />
-            </div>
+            </div>}
 
             {/* Title */}
             <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
@@ -187,11 +302,27 @@ export function PublishEditor() {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={10}
-                maxLength={5000}
+                maxLength={1000}
                 className="min-h-[200px] border-0 px-0 focus-visible:ring-0 resize-none placeholder:text-muted-foreground/60"
               />
-              <p className="text-xs text-muted-foreground text-right mt-2">{body.length} / 5000</p>
+              <p className="text-xs text-muted-foreground text-right mt-2">{body.length} / 1000</p>
+              
+              {/* Variables Form */}
+              {/* {variables.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-border/40">
+                  <VariableForm 
+                    variables={variables}
+                    onChange={setVariables}
+                    initialBody={body}
+                  />
+                </div>
+              )} */}
             </div>
+
+            {publishType === PublishType.document && <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
+              <h3 className="text-sm font-medium mb-4">选择封面效果</h3>
+              <CoverSelector handleCoverSelect={handleCoverSelect} cover={cover}/>
+            </div>}
 
             {/* Tags */}
             <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
@@ -202,17 +333,12 @@ export function PublishEditor() {
             {/* Paid Content */}
             <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
               <div className="flex items-center gap-3 mb-4">
-                <Checkbox
-                  id="paid-content"
-                  checked={hasPaidContent}
-                  onCheckedChange={(checked) => setHasPaidContent(checked as boolean)}
-                />
                 <label htmlFor="paid-content" className="text-sm font-medium cursor-pointer select-none">
-                  设置付费内容
+                  挂载提示词商品
                 </label>
               </div>
 
-              {hasPaidContent && <ProductManager selectedProducts={selectedProducts} onChange={setSelectedProducts} />}
+              <ProductManager selectedProducts={selectedProducts} onChange={setSelectedProducts} />
             </div>
           </div>
         </div>
@@ -224,9 +350,14 @@ export function PublishEditor() {
         onClose={() => setShowPreview(false)}
         title={title}
         body={body}
-        images={images}
+        images={publishType === PublishType.document && documentPreviewImage ? [documentPreviewImage] : images}
         tags={tags}
         products={selectedProducts}
+        currentUser={user ? {
+          username: user.username || "您",
+          avatar: user.avatar_url || undefined,
+          bio: user.bio || undefined
+        } : undefined}
       />
     </>
   )

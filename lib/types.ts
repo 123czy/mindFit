@@ -19,6 +19,9 @@ export interface User {
   avatar: string;
   bio?: string;
   walletAddress: string;
+  likeCount: number;
+  commentCount: number;
+  downloadCount: number;
 }
 
 // 前端帖子类型

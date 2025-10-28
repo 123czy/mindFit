@@ -65,6 +65,15 @@ export function CommentItem({ comment, isReply = false }: CommentItemProps) {
             </Button>
           </div>
 
+          {/* Nested Replies */}
+         {comment.replies && comment.replies.length > 0 && (
+           <div className="space-y-2">
+          {comment.replies.map((reply) => (
+            <CommentItem key={reply.id} comment={reply} isReply />
+          ))}
+         </div>
+          )}
+
           {showReplyInput && (
             <div className="pt-2">
               <CommentInput
@@ -77,14 +86,7 @@ export function CommentItem({ comment, isReply = false }: CommentItemProps) {
         </div>
       </div>
 
-      {/* Nested Replies */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="space-y-3">
-          {comment.replies.map((reply) => (
-            <CommentItem key={reply.id} comment={reply} isReply />
-          ))}
-        </div>
-      )}
+      
     </div>
   )
 }

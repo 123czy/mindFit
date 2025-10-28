@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import {
   useGetCreatorEarnings,
   useCreateContent,
@@ -20,7 +20,6 @@ import { Loader2, ExternalLink, Wallet, TrendingUp, ShoppingCart, Download } fro
 export function ContractInteractionDemo() {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
-  const { toast } = useToast()
 
   const [contentId, setContentId] = useState("")
   const [price, setPrice] = useState("")
@@ -65,15 +64,12 @@ export function ContractInteractionDemo() {
 
     try {
       await createContent(BigInt(contentId), price, metadataURI)
-      toast({
-        title: "交易已提交",
+      toast.success("交易已提交", {
         description: "正在等待确认...",
       })
     } catch (error: any) {
-      toast({
-        title: "交易失败",
+      toast.error("交易失败", {
         description: error.message,
-        variant: "destructive",
       })
     }
   }
