@@ -146,11 +146,11 @@ export function HeroSwiper() {
 
       {/* Single Card Container */}
       <Card className="overflow-hidden rounded-xl md:rounded-2xl border-0 bg-card shadow-lg p-2">
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px]">
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_320px] 2xl:grid-cols-[1fr_400px]">
           {/* Left Side - Featured Display */}
           <Link 
             href={activeProject.detailUrl}
-            className="relative h-[350px] md:h-[450px] lg:h-[450px] group cursor-pointer overflow-hidden"
+            className="relative h-[260px] lg:h-[400px] group cursor-pointer overflow-hidden"
           >
             {/* Main Image with smooth transition */}
             <div className="relative h-full w-full">
@@ -159,7 +159,7 @@ export function HeroSwiper() {
                 src={activeProject.image}
                 alt={activeProject.title}
                 fill
-                className="object-cover  rounded-xl md:rounded-2xl"
+                className="object-cover rounded-xl md:rounded-2xl"
                 priority
               />
               <div className="absolute inset-0 to-transparent transition-opacity rounded-xl md:rounded-2xl" />
@@ -221,8 +221,8 @@ export function HeroSwiper() {
 
           {/* Right Side - Project List with Scroll (shows 3.5 items) */}
           <div className="border-t lg:border-t-0 ">
-            <ScrollArea className="h-[300px] lg:h-[450px]">
-              <div className="px-3 lg:px-3 space-y-2.5">
+            <ScrollArea className="h-[260px] lg:h-[400px]">
+              <div className="px-3 space-y-2.5">
                 {spotlightProjects.map((project, index) => (
                   <Link
                     key={project.id}
@@ -234,7 +234,7 @@ export function HeroSwiper() {
                         : 'hover:shadow-md'
                     }`}
                   >
-                    <div className="relative h-[100px] md:h-[120px] rounded-lg overflow-hidden bg-card">
+                    <div className="relative h-[100px] lg:h-[120px] rounded-lg overflow-hidden bg-card">
                       {/* Project Image */}
                       <Image
                         src={project.image}

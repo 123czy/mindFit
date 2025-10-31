@@ -8,6 +8,8 @@ import { shapeConfig } from "@/lib/types/bento"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { FallbackImage } from "@/components/ui/fallback-image"
+import { ColorPicker } from "@/components/ui/color-picker"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface BentoElementProps {
   element: BentoElement
@@ -30,7 +32,7 @@ export function BentoElementComponent({
 }: BentoElementProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [showShapeMenu, setShowShapeMenu] = useState(false)
-
+  const [color, setColor] = useState("#3B82F6")
   // 使用 element.shape 作为 key 来强制重新计算
   const config = shapeConfig[element.shape]
   const gridColumnSpan = config.width
@@ -58,7 +60,7 @@ export function BentoElementComponent({
         return (
           <div className="relative w-full h-full overflow-hidden rounded-2xl">
             <FallbackImage
-              src={element.src}
+              src={element.src || "/placeholder.svg"}
               alt={element.alt || "Bento image"}
               fill
               className="object-cover"
@@ -121,10 +123,10 @@ export function BentoElementComponent({
   }
 
   // 渲染形状图标（更直观的形状展示）
-  const ShapePreview = ({ shape }: { shape: BentoShape }) => {
-    const config = shapeConfig[shape]
+const ShapePreview = ({ shape }: { shape: BentoShape }) => {
+   const config = shapeConfig[shape]
     
-    return (
+     return (
       <div className="flex items-center justify-center p-1">
         <div
           className={cn(
@@ -137,6 +139,75 @@ export function BentoElementComponent({
           }}
         />
       </div>
+    )
+  }
+
+
+  const renderShapeMenu = () => {
+    return (
+        <>
+    {element.type === "image" && (
+                <div className="mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border z-9999">
+                    <div className="flex gap-2">
+                    <Popover>
+      <PopoverTrigger asChild>
+          <div className="w-full flex items-center gap-2 cursor-pointer  hover:scale-110 transition-transform">
+          <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onAddLink?.()
+              }}
+            >
+              <Link2 className="h-3 w-3" />
+            </Button>
+            </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="w-full flex items-center gap-2 cursor-pointer  hover:scale-110 transition-transform">
+            add your link
+        </div>
+        </PopoverContent>
+        </Popover>
+                    </div>
+                </div>
+            )}
+            {
+            element.type === "text" && (
+            <div className="flex items-center gap-2 p-2 border-l-1 border-l-blue-500 dark:bg-gray-800 z-9999 cursor-pointer">
+               <Popover>
+      <PopoverTrigger asChild>
+          <div className="w-full flex items-center gap-2 cursor-pointer  hover:scale-110 transition-transform">
+          <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onAddLink?.()
+              }}
+            >
+              <Link2 className="h-3 w-3" />
+            </Button>
+            </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="w-full flex items-center gap-2 cursor-pointer  hover:scale-110 transition-transform">
+            add your link
+        </div>
+        </PopoverContent>
+        </Popover>
+            <ColorPicker 
+              value={color}
+              onChange={setColor}
+            />
+            </div>
+            )}
+        </>
     )
   }
 
@@ -176,22 +247,6 @@ export function BentoElementComponent({
             <X className="h-3 w-3" />
           </Button>
 
-          {/* 添加链接按钮 (非 link 类型时显示) */}
-          {element.type !== "link" && element.type !== "section" && onAddLink && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onAddLink?.()
-              }}
-            >
-              <Link2 className="h-3 w-3" />
-            </Button>
-          )}
 
           {/* 形状切换按钮 */}
           {element.type !== "section" && (
@@ -212,14 +267,14 @@ export function BentoElementComponent({
 
               {/* 形状选择菜单 - 更直观的展示 */}
               {showShapeMenu && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border z-30">
+                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-border z-9999">
                   <div className="flex gap-2">
                     {getAvailableShapes().map((shape) => (
                       <button
                         key={shape}
                         type="button"
                         className={cn(
-                          "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative z-30",
+                          "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative z-9999",
                           element.shape === shape && "bg-blue-100 dark:bg-blue-900"
                         )}
                         onClick={(e) => {
@@ -233,6 +288,7 @@ export function BentoElementComponent({
                         <ShapePreview shape={shape} />
                       </button>
                     ))}
+                    {renderShapeMenu()}
                   </div>
                 </div>
               )}

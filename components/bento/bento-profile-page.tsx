@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { BentoGrid } from "./bento-grid"
+// import { BentoGrid } from "./bento-grid"
+
+// import { PackeryDemo } from "@/components/packery-demo"
+import { MuuriDemo } from "@/components/muuri-demo"
 import { BentoToolbar } from "./bento-toolbar"
 import { Edit, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -26,7 +29,7 @@ const mockBentoElements: BentoElement[] = [
     type: "image",
     shape: "square-2x2",
     position: { x: 0, y: 0 },
-    src: "/placeholder.jpg",
+    src: "./placeholder.svg",
     alt: "Profile image",
   },
   {
@@ -283,7 +286,7 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
                       <Input
                         value={tags.pronoun}
                         onChange={(e) => setTags({ ...tags, pronoun: e.target.value })}
-                        placeholder="他 / 她 / TA"
+                        placeholder="MCN"
                         className="h-11 rounded-2xl bg-muted border-0 focus-visible:ring-1"
                       />
                     </div>
@@ -334,13 +337,14 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
             </div>
 
             {/* 右侧：Bento 网格 */}
-            <div>
-              <BentoGrid
+            <div >
+              {/* <BentoPackeryGrid
                 elements={elements}
                 isEditing={isEditing}
                 isMobileView={isMobileView}
                 onElementsChange={handleElementsChange}
-              />
+              /> */}
+              <MuuriDemo elements={elements} isMobileView={isMobileView} isEditing={isEditing} onElementsChange={handleElementsChange}/>
             </div>
           </div>
         </div>

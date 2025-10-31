@@ -16,8 +16,8 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <Link href={`/post/${post.id}`} className="block group">
-      <Card className="border border-border/40 py-2 gap-2 shadow-apple hover:shadow-apple-lg transition-apple hover-lift bg-card">
-        <div className="relative aspect-[3/4] overflow-hidden mx-2 rounded-lg">
+      <Card className="py-2 gap-2 hover:shadow-apple-lg transition-apple hover-lift bg-background">
+        <div className="relative aspect-[3/2] overflow-hidden mx-2 rounded-lg">
           <FallbackImage
             src={post.images[0] || "/placeholder.svg"}
             alt={post.title}
@@ -37,7 +37,7 @@ export function PostCard({ post }: PostCardProps) {
           )}
         </div>
 
-        <div className="px-4 space-y-0.5 bg-card">
+        <div className="px-4 space-y-0.5 bg-background">
           <h3 className="font-semibold text-sm line-clamp-2 text-foreground leading-relaxed tracking-tight">
             {post.title}
           </h3>
