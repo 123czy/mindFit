@@ -8,7 +8,13 @@ export type BentoShape =
   | "wide-1x3" // 1x3 宽矩形
   | "tall-3x1"; // 3x1 高矩形
 
-export type BentoElementType = "image" | "link" | "text" | "section";
+export type BentoElementType =
+  | "image"
+  | "link"
+  | "text"
+  | "section"
+  | "folder"
+  | "stack";
 
 export interface BaseBentoElement {
   id: string;
@@ -22,6 +28,7 @@ export interface ImageBentoElement extends BaseBentoElement {
   type: "image";
   src: string;
   alt?: string;
+  url?: string;
 }
 
 export interface LinkBentoElement extends BaseBentoElement {
@@ -35,6 +42,7 @@ export interface TextBentoElement extends BaseBentoElement {
   type: "text";
   content: string;
   fontSize?: "sm" | "md" | "lg";
+  url?: string;
 }
 
 export interface SectionBentoElement extends BaseBentoElement {
@@ -42,11 +50,24 @@ export interface SectionBentoElement extends BaseBentoElement {
   title: string;
 }
 
+export interface FolderBentoElement extends BaseBentoElement {
+  type: "folder";
+  title: string;
+  foldType: "card" | "post";
+}
+
+export interface StackBentoElement extends BaseBentoElement {
+  type: "stack";
+  title: string;
+}
+
 export type BentoElement =
   | ImageBentoElement
   | LinkBentoElement
   | TextBentoElement
-  | SectionBentoElement;
+  | SectionBentoElement
+  | FolderBentoElement
+  | StackBentoElement;
 
 export const shapeConfig: Record<
   BentoShape,

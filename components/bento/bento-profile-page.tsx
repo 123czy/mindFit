@@ -2,7 +2,8 @@
 
 import React, { useRef, useState, useEffect } from "react"
 import type { User } from "@/lib/types"
-import type { BentoElement } from "@/lib/types/bento"
+import type { BentoElement, BentoShape } from "@/lib/types/bento"
+import { shapeConfig } from "@/lib/types/bento"
 import { Navbar } from "@/components/layout/navbar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
@@ -58,6 +59,29 @@ const mockBentoElements: BentoElement[] = [
     title: "Twitter",
     icon: "🐦",
   },
+  {
+    id: "55",
+    type: "stack",
+    shape: "square-2x2",
+    position: { x: 2, y: 2 },
+    title: "图库",
+  },
+  {
+    id: "66",
+    type: "folder",
+    shape: "square-2x2",
+    position: { x: 0, y: 4 },
+    title: "名片夹",
+    foldType: "card",
+  },
+  {
+    id: "77",
+    type: "folder",
+    shape: "square-2x2",
+    position: { x: 0, y: 6 },
+    title: "帖子夹",
+    foldType: "post",
+  }
 ]
 
 export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
@@ -81,14 +105,59 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
     pronoun: "",
   })
 
+  // 查找空闲位置的函数
+  const findEmptyPosition = (shape: BentoShape, elements: BentoElement[]): { x: number; y: number } => {
+    const config = shapeConfig[shape]
+    const gridCols = isMobileView ? 2 : 4
+    const maxRows = 20 // 最大搜索行数
+    
+    // 创建占用网格的映射
+    const occupied = new Set<string>()
+    elements.forEach((el) => {
+      const elConfig = shapeConfig[el.shape]
+      for (let row = el.position.y; row < el.position.y + elConfig.height; row++) {
+        for (let col = el.position.x; col < el.position.x + elConfig.width; col++) {
+          occupied.add(`${col},${row}`)
+        }
+      }
+    })
+
+    // 从上到下、从左到右查找空闲位置
+    for (let row = 0; row < maxRows; row++) {
+      for (let col = 0; col <= gridCols - config.width; col++) {
+        let canPlace = true
+        
+        // 检查当前位置是否可以放置
+        for (let r = row; r < row + config.height; r++) {
+          for (let c = col; c < col + config.width; c++) {
+            if (occupied.has(`${c},${r}`)) {
+              canPlace = false
+              break
+            }
+          }
+          if (!canPlace) break
+        }
+        
+        if (canPlace) {
+          return { x: col, y: row }
+        }
+      }
+    }
+    
+    // 如果找不到空位，返回最下方的位置
+    const maxY = Math.max(0, ...elements.map(el => el.position.y + shapeConfig[el.shape].height))
+    return { x: 0, y: maxY }
+  }
+
   const handleAddElement = (newElement: Omit<BentoElement, "id" | "position">) => {
+    const position = findEmptyPosition(newElement.shape, elements)
     const element: BentoElement = {
       ...newElement,
-      id: `element-${Date.now()}`,
-      position: { x: 0, y: 0 },
+      id: `element-${Date.now()}-${Math.random()}`, // 确保唯一性
+      position,
     } as BentoElement
 
-    setElements([...elements, element])
+    setElements((prevElements) => [...prevElements, element])
   }
 
   const handleElementsChange = (newElements: BentoElement[]) => {
@@ -338,12 +407,6 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
 
             {/* 右侧：Bento 网格 */}
             <div >
-              {/* <BentoPackeryGrid
-                elements={elements}
-                isEditing={isEditing}
-                isMobileView={isMobileView}
-                onElementsChange={handleElementsChange}
-              /> */}
               <MuuriDemo elements={elements} isMobileView={isMobileView} isEditing={isEditing} onElementsChange={handleElementsChange}/>
             </div>
           </div>

@@ -72,7 +72,7 @@ export function BentoGrid({ elements, isEditing, isMobileView, onElementsChange 
   return (
     <div
       className={cn(
-        "mx-auto transition-all duration-300 min-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent",
+        "mx-auto transition-all duration-300  scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent",
         isMobileView ? "w-full max-w-[375px]" : "w-full max-w-4xl"
       )}
     >

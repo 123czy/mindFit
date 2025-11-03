@@ -54,6 +54,83 @@ pnpm dev
 
 访问 [http://localhost:3000](http://localhost:3000)
 
+### 6. 分享本地开发环境（内网穿透）
+
+如果需要让其他人访问你的本地开发环境，可以使用内网穿透工具：
+
+#### 使用 LocalTunnel（推荐，无需注册）
+
+```bash
+# 方式一：使用便捷脚本（推荐）
+pnpm tunnel
+
+# 方式二：手动启动
+lt --port 3000 --print-requests
+```
+
+运行后会显示类似这样的信息：
+
+```
+your url is: https://late-ghosts-sit.loca.lt
+```
+
+**🔑 重要提示 - Tunnel Password（隧道密码）：**
+
+- ⚠️ **第一次访问时会要求输入密码**
+- 💡 **密码就是你的公网 IP 地址**（localtunnel 不会在终端显示）
+- 🔍 **快速获取 URL 和密码：**
+
+  ```bash
+  # 使用脚本自动获取
+  pnpm tunnel:info
+  # 或
+  ./scripts/show-tunnel-info.sh
+  ```
+
+  输出示例：
+
+  ```
+  📋 Tunnel URL: https://late-ghosts-sit.loca.lt
+  🔑 Tunnel Password: 155.117.84.73
+  ```
+
+**访问流程：**
+
+1. **获取信息**：运行 `pnpm tunnel:info` 获取 URL 和密码
+2. **分享**：将 URL 和密码都发送给访问者
+3. **访问者操作**：
+   - 在浏览器打开 URL
+   - 第一次访问时输入密码（你的公网 IP）
+   - 之后可以正常访问
+
+**注意事项：**
+
+- 确保开发服务器正在运行（`pnpm dev`）
+- URL 在每次启动时可能会变化
+- 密码是你的公网 IP，通常不会频繁变化
+- 关闭终端后隧道会断开
+
+#### 使用 Ngrok（更稳定，需要注册）
+
+1. 注册账号（免费）：https://dashboard.ngrok.com/signup
+2. 获取 authtoken：https://dashboard.ngrok.com/get-started/your-authtoken
+3. 配置 authtoken：
+   ```bash
+   ngrok config add-authtoken YOUR_AUTHTOKEN
+   ```
+4. 启动隧道：
+   ```bash
+   ngrok http 3000
+   ```
+
+**快速查看隧道状态：**
+
+```bash
+pnpm tunnel:info
+```
+
+这会显示当前的 URL、密码和访问说明，方便分享给访问者。
+
 ## 📚 完整文档
 
 - [SETUP_CHECKLIST.md](./SETUP_CHECKLIST.md) - 完整设置清单
@@ -120,27 +197,32 @@ pnpm lint             # 运行 ESLint
 ## 🎯 主要功能
 
 ### 用户功能
+
 - 钱包登录（MetaMask 等）
 - 自动创建用户账户
 - 个人资料管理
 
 ### 内容功能
+
 - 发布图文内容
 - 创建付费内容
 - 浏览和搜索帖子
 - 评论和点赞
 
 ### 商品功能
+
 - 创建数字商品
 - 设置价格和库存
 - 商品展示和搜索
 
 ### 交易功能
+
 - 购买数字商品
 - 代币支付
 - 交易记录查询
 
 ### 声誉系统
+
 - 身份 NFT (EIP-4973)
 - 成就徽章 (EIP-5114)
 - 自动徽章发放
@@ -148,11 +230,14 @@ pnpm lint             # 运行 ESLint
 ## 🧪 测试
 
 ### 获取测试代币
+
 1. 连接 Sepolia 测试网
 2. 在应用中点击"领取"按钮获取 mUSDT
 
 ### 获取 Sepolia ETH
+
 访问以下水龙头：
+
 - https://sepoliafaucet.com/
 - https://www.alchemy.com/faucets/ethereum-sepolia
 
