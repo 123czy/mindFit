@@ -79,7 +79,7 @@ const mockBentoElements: BentoElement[] = [
     type: "folder",
     shape: "square-2x2",
     position: { x: 0, y: 6 },
-    title: "帖子夹",
+    title: "作品集",
     foldType: "post",
   }
 ]
@@ -92,6 +92,9 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
   const [elements, setElements] = useState<BentoElement[]>(mockBentoElements)
   const [nameText, setNameText] = useState(user.username)
   const [bioLines, setBioLines] = useState<string[]>((user.bio || "i am what i am").split("\n"))
+  
+  // 解锁状态：如果是 owner，默认解锁；否则需要付费解锁
+  const [isUnlocked, setIsUnlocked] = useState(isOwner)
 
   const bioContainerRef = useRef<HTMLDivElement | null>(null)
   const nameRef = useRef<HTMLInputElement | null>(null)
@@ -407,7 +410,16 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
 
             {/* 右侧：Bento 网格 */}
             <div >
-              <MuuriDemo elements={elements} isMobileView={isMobileView} isEditing={isEditing} onElementsChange={handleElementsChange}/>
+              <MuuriDemo 
+                elements={isUnlocked ? elements : mockBentoElements} 
+                isMobileView={isMobileView} 
+                isEditing={isEditing && isUnlocked} 
+                onElementsChange={handleElementsChange}
+                isUnlocked={isUnlocked}
+                isOwner={isOwner}
+                onUnlock={() => setIsUnlocked(true)}
+                profilePrice={9.99} // 解锁价格
+              />
             </div>
           </div>
         </div>

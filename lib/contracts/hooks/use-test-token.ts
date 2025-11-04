@@ -22,7 +22,7 @@ export function useTestToken() {
     sepolia.id
   ] as `0x${string}`;
 
-  // Read token balance
+  // Read token balance with caching and stale time
   const {
     data: balance,
     isLoading: isLoadingBalance,
@@ -34,26 +34,32 @@ export function useTestToken() {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && isConnected,
+      refetchInterval: 30000, // 30秒刷新一次
+      staleTime: 10000, // 10秒内使用缓存
     },
   });
 
-  // Read token decimals
+  // Read token decimals (cached, rarely changes)
   const { data: decimals } = useReadContract({
     address: testTokenAddress,
     abi: MOCK_ERC20_ABI,
     functionName: "decimals",
     query: {
       enabled: true,
+      staleTime: Infinity, // 永久缓存
+      gcTime: Infinity, // wagmi v2 使用 gcTime 替代 cacheTime
     },
   });
 
-  // Read token symbol
+  // Read token symbol (cached, rarely changes)
   const { data: symbol } = useReadContract({
     address: testTokenAddress,
     abi: MOCK_ERC20_ABI,
     functionName: "symbol",
     query: {
       enabled: true,
+      staleTime: Infinity, // 永久缓存
+      gcTime: Infinity, // wagmi v2 使用 gcTime 替代 cacheTime
     },
   });
 

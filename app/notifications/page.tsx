@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/layout/navbar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -9,6 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Check } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
+import { useAuth } from "@/lib/auth/auth-context"
+import { useLoginDialog } from "@/lib/auth/use-login-dialog"
 
 type NotificationType = "all" | "system" | "interaction"
 
@@ -96,8 +99,23 @@ const mockNotifications: Notification[] = [
 ]
 
 export default function NotificationsPage() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
+  const { openDialog } = useLoginDialog()
   const [activeTab, setActiveTab] = useState<NotificationType>("all")
   const [notifications] = useState<Notification[]>(mockNotifications)
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      openDialog({
+        type: "view_notifications",
+        params: {},
+        callback: () => {
+          // 登录后不需要额外操作，页面会自动刷新
+        },
+      })
+    }
+  }, [isAuthenticated, isLoading, openDialog])
 
   // 排序：按时间从新到旧
   const sortedNotifications = [...notifications].sort(

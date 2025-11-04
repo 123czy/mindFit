@@ -1,64 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  getPostById,
-  getProductsByPostId,
-  incrementViewCount,
-} from "../supabase/api";
+import { useQuery } from "@tanstack/react-query";
+import { getPostById } from "../supabase/api/posts";
+import { getProductsByPostId } from "../supabase/api/products";
 import { mapDbPostToPost, type Post } from "../types";
+import { CACHE_TIMES, QUERY_PRESETS } from "../react-query/config";
+
+interface UsePostDetailOptions {
+  postId: string;
+  enabled?: boolean;
+}
 
 /**
- * Hook to fetch a single post by ID
+ * 获取单个 Post 详情的 Hook
+ *
+ * 使用 POST_DETAIL 缓存策略：
+ * - 5分钟缓存（比列表长，因为单个帖子变化不频繁）
+ * - 10分钟垃圾回收
  */
-export function usePostDetail(postId: string) {
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
+export function usePostDetail(options: UsePostDetailOptions) {
+  const { postId, enabled = true } = options;
 
-  useEffect(() => {
-    async function loadPost() {
-      if (!postId) {
-        setIsLoading(false);
-        return;
+  const {
+    data: post,
+    isLoading,
+    error,
+    isFetching,
+  } = useQuery<Post | null>({
+    queryKey: ["post", postId],
+    queryFn: async () => {
+      // 获取 post
+      const { data: dbPost, error: postError } = await getPostById(postId);
+
+      if (postError || !dbPost) {
+        throw postError || new Error("Post not found");
       }
 
-      setIsLoading(true);
-      setError(null);
+      // 获取 products
+      const { data: products } = await getProductsByPostId(postId);
 
-      try {
-        const { data: dbPost, error: fetchError } = await getPostById(postId);
-
-        if (fetchError) {
-          throw fetchError;
-        }
-
-        if (dbPost) {
-          // 获取关联的商品
-          const { data: products } = await getProductsByPostId(postId);
-
-          // 增加浏览次数
-          incrementViewCount(postId);
-
-          setPost(mapDbPostToPost(dbPost as any, products || []));
-        } else {
-          setError(new Error("Post not found"));
-        }
-      } catch (err) {
-        console.error("Error loading post:", err);
-        setError(err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadPost();
-  }, [postId]);
+      // 转换数据格式
+      return mapDbPostToPost(dbPost, products || []);
+    },
+    enabled: enabled && !!postId,
+    // 使用配置中的缓存时间（详情页缓存更久）
+    staleTime: CACHE_TIMES.POST_DETAIL.staleTime, // 5分钟缓存
+    gcTime: CACHE_TIMES.POST_DETAIL.gcTime, // 10分钟垃圾回收
+    // 使用详情查询预设
+    ...QUERY_PRESETS.detail,
+  });
 
   return {
     post,
     isLoading,
+    isFetching,
     error,
   };
 }
-

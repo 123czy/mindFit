@@ -91,6 +91,58 @@ export async function getPosts(options?: {
 }
 
 /**
+ * Get posts with products in a single query (优化：减少查询次数)
+ */
+export async function getPostsWithProducts(options?: {
+  limit?: number;
+  offset?: number;
+  userId?: string;
+  tags?: string[];
+}) {
+  try {
+    // 先获取 posts
+    const postsResult = await getPosts(options);
+
+    if (postsResult.error || !postsResult.data) {
+      return postsResult;
+    }
+
+    // 批量获取所有 products
+    const postIds = postsResult.data.map((post: any) => post.id);
+    const { getProductsByPostIds } = await import("./products");
+    const { data: allProducts, error: productsError } =
+      await getProductsByPostIds(postIds);
+
+    if (productsError) {
+      console.error("Error loading products:", productsError);
+    }
+
+    // 将 products 分组到对应的 post
+    const productsByPostId = new Map<string, any[]>();
+    if (allProducts) {
+      allProducts.forEach((product: any) => {
+        const postId = product.post_id;
+        if (!productsByPostId.has(postId)) {
+          productsByPostId.set(postId, []);
+        }
+        productsByPostId.get(postId)!.push(product);
+      });
+    }
+
+    // 将 products 附加到 posts
+    const postsWithProducts = postsResult.data.map((post: any) => ({
+      ...post,
+      products: productsByPostId.get(post.id) || [],
+    }));
+
+    return { data: postsWithProducts, error: null };
+  } catch (error) {
+    console.error("Error in getPostsWithProducts:", error);
+    return { data: null, error };
+  }
+}
+
+/**
  * Get post by ID
  */
 export async function getPostById(postId: string) {

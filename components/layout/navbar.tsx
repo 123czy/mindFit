@@ -1,10 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { Search, Copy, LogOut, ChevronDown } from "lucide-react"
+import { Search, Copy, LogOut, ChevronDown, Bell, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useAccount, useDisconnect } from "wagmi"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,27 +11,57 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
+import { useAuth } from "@/lib/auth/auth-context"
+import { useLoginDialog } from "@/lib/auth/use-login-dialog"
+import { useRequireAuth } from "@/lib/auth/use-require-auth"
+import { useState } from "react"
 
 export function Navbar() {
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
+  const { user, isAuthenticated, signOut } = useAuth()
+  const { openDialog } = useLoginDialog()
+  const { requireAuth } = useRequireAuth()
+  const [searchType, setSearchType] = useState<"posts" | "users" | "tags">("posts")
+  const [searchQuery, setSearchQuery] = useState("")
 
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  const handleLogin = () => {
+    openDialog()
   }
 
-  const copyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address)
-      toast.success("地址已复制")
-    }
+  const handleLogout = async () => {
+    await signOut()
+    toast.success("已退出登录")
   }
 
-  const handleDisconnect = () => {
-    disconnect()
-    toast.success("已断开连接")
+  const handleNotifications = () => {
+    requireAuth(
+      () => {
+        window.location.href = "/notifications"
+      },
+      "view_notifications"
+    )
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    
+    // 根据搜索类型跳转到不同的搜索页面
+    const params = new URLSearchParams({ q: searchQuery })
+    const path = searchType === "posts" 
+      ? `/search?${params}`
+      : searchType === "users"
+      ? `/search/users?${params}`
+      : `/search/tags?${params}`
+    
+    window.location.href = path
+  }
+
+  const searchTypeLabels = {
+    posts: "帖子",
+    users: "用户",
+    tags: "标签",
   }
 
   return (
@@ -47,61 +76,109 @@ export function Navbar() {
           </Link>
 
           <div className="flex-1 max-w-2xl mx-8">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
-              <Input
-                type="search"
-                placeholder="搜索炒词、达人、话题..."
-                className="w-full pl-11 pr-4 h-11 bg-muted/40 border-border/40 rounded-xl focus:bg-background focus:border-primary/40 focus:ring-2 focus:ring-primary/20 transition-all"
-              />
-            </div>
+            <form onSubmit={handleSearch} className="relative group">
+              <div className="flex items-center rounded-xl bg-muted/40 border border-border/40 focus-within:bg-background focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden">
+                {/* 搜索图标 */}
+                <Search className="absolute left-4 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary pointer-events-none z-10" />
+                
+                {/* 搜索输入框 */}
+                <Input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="搜索炒词、达人、话题..."
+                  className="flex-1 pl-11 pr-2 h-11 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+                />
+                
+                {/* 类型选择器 */}
+                <div className="relative">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 px-3 h-11 text-sm font-medium text-foreground hover:bg-muted/60 transition-colors border-l border-border/40 focus:outline-none"
+                      >
+                        <span>{searchTypeLabels[searchType]}</span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem
+                        onClick={() => setSearchType("posts")}
+                      >
+                        <span className={searchType === "posts" ? "font-bold" : ""}>帖子</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSearchType("users")}
+                      >
+                        <span className={searchType === "users" ? "font-bold" : ""}>用户</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSearchType("tags")}
+                      >
+                        <span className={searchType === "tags" ? "font-bold" : ""}>标签</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                
+                {/* 搜索按钮 */}
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="h-11 w-11 rounded-none bg-primary hover:bg-primary/90 text-primary-foreground flex-shrink-0"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
           </div>
 
-          {isConnected && address ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-11 px-4 rounded-xl border-border/40 hover:bg-accent/60 transition-apple gap-3 bg-transparent"
-                >
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                      {address.slice(2, 4).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-mono text-sm">{formatAddress(address)}</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-2">
-                  <p className="text-xs text-muted-foreground mb-1">钱包地址</p>
-                  <p className="text-sm font-mono">{formatAddress(address)}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={copyAddress} className="cursor-pointer">
-                  <Copy className="mr-2 h-4 w-4" />
-                  复制地址
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile/AI_Creator_Pro">我的主页</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile/AI_Creator_Pro?tab=wallet">我的资产</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  断开连接
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {isAuthenticated && user ? (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNotifications}
+                className="relative"
+              >
+                <Bell className="h-5 w-5" />
+                {/* 可以添加未读消息红点 */}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 px-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {user.username?.[0]?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:inline-block">{user.username}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/profile/${user.username}`}>个人资料</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/publish">发布内容</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    退出登录
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <Button
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6 h-11 font-medium shadow-apple hover:shadow-apple-lg transition-apple active-press"
-              asChild
+              onClick={handleLogin}
             >
-              <Link href="/login">登录解锁更多名片</Link>
+              登录
             </Button>
           )}
         </div>

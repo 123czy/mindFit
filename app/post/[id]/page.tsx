@@ -5,7 +5,6 @@ import { PostContent } from "@/components/post/post-content"
 import { PostAuthorCard } from "@/components/post/post-author-card"
 import { PaidContentSection } from "@/components/post/paid-content-section"
 import { CommentSection } from "@/components/comment/comment-section"
-
 import { getPostById, getProductsByPostId } from "@/lib/supabase/api"
 import { mapDbPostToPost } from "@/lib/types"
 
@@ -37,7 +36,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           <div className="space-y-6">
             <PostContent post={post} />
             <PostAuthorCard author={post.author} />
-            {post.hasPaidContent && post.products && <PaidContentSection products={post.products} />}
+            {/* {post.hasPaidContent && post.products && <PaidContentSection products={post.products} />} */}
           </div>
         </div>
 

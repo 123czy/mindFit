@@ -1,7 +1,8 @@
 "use client"
 import { Lock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProductCardInPost } from "@/components/product/product-card-in-post"
+// import { ProductCardInPost } from "@/components/product/product-card-in-post"
+import { ProductCardDetail } from "@/components/product/product-card-detail"
 import type { Product } from "@/lib/types"
 
 interface PaidContentSectionProps {
@@ -19,7 +20,7 @@ export function PaidContentSection({ products }: PaidContentSectionProps) {
       </CardHeader>
       <CardContent className="space-y-0">
         {products.map((product) => (
-          <ProductCardInPost key={product.id} product={product} />
+          <ProductCardDetail key={product.id} product={product} />
         ))}
       </CardContent>
     </Card>

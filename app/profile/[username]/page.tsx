@@ -15,7 +15,7 @@ export default async function ProfilePage({
     notFound()
   }
 
-  const isOwner = true // Mock - in real app, check if current user is owner
+  const isOwner = false // Mock - in real app, check if current user is owner
 
   return <BentoProfilePage user={user} isOwner={isOwner} />
 }

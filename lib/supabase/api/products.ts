@@ -130,13 +130,37 @@ export async function getProductsByPostId(postId: string) {
     const { data, error } = await supabase
       .from("products")
       .select("*, users!inner(username, avatar_url, wallet_address)")
-      .eq("id", postId)
-      .eq("is_active", true);
+      .eq("post_id", postId) // 修复：应该是 post_id 而不是 id
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
     return { data, error };
   } catch (error) {
     console.error("Error in getProductsByPostId:", error);
     return { data: null, error };
+  }
+}
+
+/**
+ * Batch get products by post IDs (优化：一次性获取多个 post 的 products)
+ */
+export async function getProductsByPostIds(postIds: string[]) {
+  try {
+    if (postIds.length === 0) {
+      return { data: [], error: null };
+    }
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, users!inner(username, avatar_url, wallet_address)")
+      .in("post_id", postIds)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    return { data: data || [], error };
+  } catch (error) {
+    console.error("Error in getProductsByPostIds:", error);
+    return { data: [], error };
   }
 }
 

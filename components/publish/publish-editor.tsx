@@ -26,7 +26,6 @@ import { createTextImage } from "@/lib/utils/text-to-image"
 
 enum PublishType {
   picture = "picture",
-  video = "video",
   document = "document"
 }
 
@@ -74,7 +73,7 @@ export function PublishEditor() {
   const [variables, setVariables] = useState<Array<{id: string, type: string, value: string}>>([])
   const handlePublish = async () => {
     if (!isAuthenticated || !user) {
-      toast.error("请先连接钱包")
+      toast.error("请先登录")
       return
     }
 
@@ -242,7 +241,6 @@ export function PublishEditor() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="picture">图文</SelectItem>
-                <SelectItem value="video">视频</SelectItem>
                 <SelectItem value="document">长文</SelectItem>
               </SelectContent>
             </Select>

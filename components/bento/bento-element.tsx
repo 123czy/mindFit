@@ -346,7 +346,7 @@ export function BentoElementComponent({
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white z-9999 text-2xl font-semibold bold">
               {element.foldType === "card" ? "名片夹" : "作品集"}
             </div>
-           <Folder size={2} color={hexToRgba(element.color || "#E3825D", 1)} className="custom-folder relative" items={element.foldType === "card" ? cardsNode() : postsNode()}/>
+           <Folder size={2} color={element.color || "#E3825D"} className="custom-folder relative" items={element.foldType === "card" ? cardsNode() : postsNode()}/>
         </div>
       )
     }

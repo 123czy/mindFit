@@ -1,15 +1,23 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { BentoElement, BentoShape } from "@/lib/types/bento"
 import { shapeConfig } from "@/lib/types/bento"
 import { BentoElementComponent } from "./bento/bento-element"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Lock, Sparkles } from "lucide-react"
+import { toast } from "sonner"
+import { useAuth } from "@/lib/auth/auth-context"
 interface MuuriDemoProps {
   elements: BentoElement[]
   isEditing: boolean
   isMobileView: boolean
   onElementsChange?: (elements: BentoElement[]) => void
+  isUnlocked?: boolean
+  isOwner?: boolean
+  onUnlock?: () => void
+  profilePrice?: number
 }
 
 const BASE = 100
@@ -19,8 +27,14 @@ export function MuuriDemo({
   elements, 
   isEditing, 
   isMobileView, 
-  onElementsChange 
+  onElementsChange,
+  isUnlocked = true,
+  isOwner = false,
+  onUnlock,
+  profilePrice = 9.99
 }: MuuriDemoProps) {
+  const { isAuthenticated } = useAuth()
+  const [isProcessing, setIsProcessing] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
   const muuriRef = useRef<any>(null)
 
@@ -136,19 +150,49 @@ export function MuuriDemo({
     )
   }
 
+  const handleUnlock = async () => {
+    if (!isAuthenticated) {
+      toast.error("请先登录")
+      return
+    }
+
+    if (isOwner) {
+      toast.info("这是您自己的资料")
+      return
+    }
+
+    setIsProcessing(true)
+    
+    // 模拟付费流程
+    try {
+      // TODO: 这里应该调用实际的付费 API
+      // 例如：await createTransaction({ profileId: user.id, amount: profilePrice })
+      
+      // 模拟 API 调用延迟
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      toast.success("解锁成功！")
+      onUnlock?.()
+    } catch (error) {
+      console.error("Unlock error:", error)
+      toast.error("解锁失败，请重试")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
   return (
     <div
       className={cn(
-        "mx-auto transition-all duration-300 min-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent",
+        "mx-auto transition-all duration-300 min-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent relative",
         isMobileView ? "w-full max-w-[375px]" : "w-full max-w-4xl"
       )}
     >  
-      
-
       <div 
         ref={gridRef} 
         className={cn(
-          "muuri-grid relative p-4 sm:p-6"
+          "muuri-grid relative p-4 sm:p-6",
+          !isUnlocked && !isOwner && "blur-sm select-none pointer-events-none"
         )}
       >
 
@@ -194,6 +238,50 @@ export function MuuriDemo({
           </div>
         )}
       </div>
+
+      {/* 解锁蒙层 */}
+      {!isUnlocked && !isOwner && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-2xl">
+          <div className="flex flex-col items-center gap-6 p-8 max-w-md text-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+              <div className="relative bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-full border border-primary/20">
+                <Lock className="h-12 w-12 text-primary" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold">解锁完整个人资料</h3>
+              <p className="text-muted-foreground">
+                支付 <span className="font-semibold text-primary">{profilePrice}</span> 元即可查看用户的完整作品集、联系方式等信息
+              </p>
+            </div>
+
+            <Button
+              onClick={handleUnlock}
+              disabled={isProcessing}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-medium shadow-lg hover:shadow-xl transition-all"
+            >
+              {isProcessing ? (
+                <>
+                  <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                  处理中...
+                </>
+              ) : (
+                <>
+                  <Lock className="mr-2 h-5 w-5" />
+                  解锁个人资料 ¥{profilePrice}
+                </>
+              )}
+            </Button>
+
+            <p className="text-xs text-muted-foreground">
+              解锁后可永久查看该用户的完整资料
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

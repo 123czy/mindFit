@@ -52,10 +52,13 @@ export function PurchaseProductButton({
     });
 
   const handlePurchase = async () => {
-    if (!isAuthenticated || !user || !address) {
-      toast.error("请先连接钱包");
+    if (!isAuthenticated || !user) {
+      toast.error("请先登录");
       return;
     }
+    
+    // 注意：如果需要Web3钱包功能，这里可以保留address检查
+    // 但根据需求，我们不再使用Web3钱包登录，所以移除address检查
 
     if (user.id === sellerId) {
       toast.error("不能购买自己的商品");

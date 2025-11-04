@@ -1,14 +1,13 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Bell, Wallet, PenSquare, Coins } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useAccount } from "wagmi"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useTestToken } from "@/lib/contracts/hooks/use-test-token"
 
 const navItems = [
   { href: "/", label: "发现", icon: Home },
@@ -19,19 +18,7 @@ const navItems = [
 
 export function SidebarLeft() {
   const pathname = usePathname()
-  const { address, isConnected } = useAccount()
-  const {
-    symbol,
-    formattedBalance,
-    isLoadingBalance,
-    hasLowBalance,
-    claimTokens,
-    isMinting,
-  } = useTestToken()
-
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
+  
 
   return (
     <div className="sticky top-20 space-y-4">
@@ -40,47 +27,15 @@ export function SidebarLeft() {
           <CardContent className="p-5">
             <Link href="/profile/AI_Creator_Pro" className="flex items-center gap-3 group">
               <Avatar className="h-12 w-12 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-                {/* <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-base font-semibold">
-                  {address.slice(2, 4).toUpperCase()}
-                </AvatarFallback> */}
+                {/* </AvatarFallback> */}
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">AI Creator</p>
-                {/* <p className="text-xs text-muted-foreground font-mono truncate">{formatAddress(address)}</p> */}
               </div>
             </Link>
             <div className="flex mt-2">
                 <p className="text-sm text-muted-foreground font-mono truncate"> 已发布  40</p>
                 <p className="text-sm text-muted-foreground font-mono truncate ml-2">已收录  12</p>
-            </div>
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/40">
-              <Coins className="h-4 w-4 text-primary" />
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground">测试代币余额</p>
-                <p className="text-sm font-semibold font-mono">
-                  {isLoadingBalance ? (
-                    <span className="text-muted-foreground">加载中...</span>
-                  ) : (
-                    <>
-                      {parseFloat(formattedBalance).toFixed(2)} {symbol}
-                    </>
-                  )}
-                </p>
-              </div>
-              {hasLowBalance && !isMinting && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => claimTokens("1000")}
-                  className="h-7 text-xs"
-                  disabled={isMinting}
-                >
-                  领取
-                </Button>
-              )}
-              {isMinting && (
-                <span className="text-xs text-muted-foreground">处理中...</span>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -110,6 +65,8 @@ export function SidebarLeft() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
+              scroll={false}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-apple relative group",
                 isActive
