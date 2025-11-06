@@ -11,17 +11,45 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 // import { BentoGrid } from "./bento-grid"
-
 // import { PackeryDemo } from "@/components/packery-demo"
 import { MuuriDemo } from "@/components/muuri-demo"
 import { BentoToolbar } from "./bento-toolbar"
 import { Edit, Check } from "lucide-react"
+import { BentoImages } from "@/components/bento/bento-images"
 import { cn } from "@/lib/utils"
 
 interface BentoProfilePageProps {
   user: User
   isOwner: boolean
 }
+
+interface Item {
+    id: string;
+    img: string;
+    url: string;
+    height: number;
+  }
+  
+  const items: Item[] = [
+      {
+        id: "1",
+        img: "https://picsum.photos/id/1015/600/900?grayscale",
+        url: "https://example.com/one",
+        height: 400,
+      },
+      {
+        id: "2",
+        img: "https://picsum.photos/id/1011/600/750?grayscale",
+        url: "https://example.com/two",
+        height: 250,
+      },
+      {
+        id: "3",
+        img: "https://picsum.photos/id/1020/600/800?grayscale",
+        url: "https://example.com/three",
+        height: 600,
+      }
+  ];
 
 // Mock 初始数据
 const mockBentoElements: BentoElement[] = [
@@ -283,10 +311,11 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
               isMobileView ? "grid-cols-1" : "grid-cols-[300px_1fr]"
             )}
           >
+
             {/* 左侧：用户信息 */}
             <div className={cn("space-y-4", isMobileView && "flex flex-col p-6")}>
               <Avatar className={cn("h-48 w-48 ring-4 ring-white dark:ring-gray-800 shadow-xl", isMobileView && "h-24 w-24")}>
-                <AvatarImage src={user.avatar || "/placeholder-user.jpg"} />
+                <AvatarImage src={user.avatar || "/artist-avatar.png"} />
                 <AvatarFallback>{user.username[0]}</AvatarFallback>
               </Avatar>
               

@@ -93,6 +93,7 @@ interface BentoElementProps {
   onDragEnd?: (e: React.DragEvent) => void
   onColorChange?: (id: string, color: string) => void
   onContentChange?: (id: string, content: string) => void
+  onClickImages?: () => void
 }
 
 export function BentoElementComponent({
@@ -105,6 +106,7 @@ export function BentoElementComponent({
   onDragEnd,
   onColorChange,
   onContentChange,
+  onClickImages,
 }: BentoElementProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [showShapeMenu, setShowShapeMenu] = useState(false)
@@ -325,7 +327,7 @@ export function BentoElementComponent({
         return (
           <div className="w-full h-full flex items-center justify-center p-4 rounded-2xl" onClick={() => {
             if (isEditing) return
-            router.push(`/artwork-preview?type=image`)
+            onClickImages?.()
           }}>
   <Stack
   randomRotation={true}
@@ -343,7 +345,7 @@ export function BentoElementComponent({
             if (isEditing) return
             router.push(`/artwork-preview?type=${element.foldType}`) 
         }}>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white z-9999 text-2xl font-semibold bold">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white z-9999 text-xl font-semibold bold">
               {element.foldType === "card" ? "名片夹" : "作品集"}
             </div>
            <Folder size={2} color={element.color || "#E3825D"} className="custom-folder relative" items={element.foldType === "card" ? cardsNode() : postsNode()}/>

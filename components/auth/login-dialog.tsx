@@ -1,11 +1,13 @@
 "use client"
 
+import Link from "next/link"
 import React, { useEffect } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { WechatQrLogin } from "./wechat-qr-login"
-import { GoogleLogin } from "./google-login"
-import Link from "next/link"
+// import { GoogleLogin } from "./google-login"
 // import { EmailCodeLogin } from "./email-code-login" // 暂时隐藏，保留代码
+
+import GoogleLoginButton from "./google-login-button"
 import { useLoginDialog } from "@/lib/auth/use-login-dialog"
 import { useAuth } from "@/lib/auth/auth-context"
 
@@ -27,7 +29,7 @@ export function LoginDialog() {
         <div className="grid grid-cols-1 md:grid-cols-2">
           
           {/* 左侧：Logo和Slogan */}
-          <div className="hidden md:flex flex-col items-center justify-center p-12 bg-gradient-to-br from-gray-50/50 via-white to-gray-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+          <div className="hidden md:flex flex-col items-center justify-center p-12 bg-gradient-to-br from-primary/30 to-accent/30  dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
             <div className="flex flex-col items-center space-y-6 max-w-sm">
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
                 <span className="text-white text-3xl font-bold">炒</span>
@@ -64,9 +66,9 @@ export function LoginDialog() {
                   </span>
                 </div>
               </div>
-              
+
               {/* Google登录 */}
-              <GoogleLogin />
+              <GoogleLoginButton className="w-full" onSuccess={() => {}} />
 
 
               <p className="text-sm text-muted-foreground">隐私条款，登录即代表同意<Link href="/terms" className="text-primary hover:underline ml-1">《用户协议》</Link>和<Link href="/privacy" className="text-primary hover:underline ml-1">《隐私政策》</Link></p>

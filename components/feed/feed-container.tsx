@@ -9,7 +9,8 @@ import { PostCardSkeleton } from "@/components/feed/post-card-skeleton"
 export function FeedContainer() {
   const { posts, isLoading, isFetching, error } = usePostsOptimized({ limit: 20 })
 
-  // 显示骨架屏（首次加载或从缓存加载时）
+  // 显示骨架屏：只有在没有数据且正在加载时才显示
+  // 如果有 SSR 预填充的数据，即使正在重新获取也不显示骨架屏
   const showSkeleton = isLoading && posts.length === 0
 
   if (error) {

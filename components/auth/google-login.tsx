@@ -2,19 +2,14 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
-import { useGoogleLogin } from "@/lib/api/auth"
+import { googleSignIn } from "@/lib/api/auth"
+import { useGoogleSignIn } from "@/lib/hooks/use-api-auth"
 
 export function GoogleLogin() {
-  const { mutate: login, isPending: isLoading } = useGoogleLogin()
+  const { mutate: login, isPending: isLoading } = useGoogleSignIn()
 
   const handleGoogleLogin = () => {
-    login(undefined, {
-      onError: (error: Error) => {
-        console.error("Google login error:", error)
-        toast.error(error.message || "Google登录失败，请重试")
-      },
-    })
+    login({ id_token: "" })
   }
 
   return (

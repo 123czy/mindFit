@@ -34,18 +34,17 @@ export default async function SearchPage({
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">搜索结果</h1>
-          {query && <p className="text-muted-foreground">关键词: {query}</p>}
+          {query && <p className="text-muted-foreground mt-2">关键词: {query}</p>}
         </div>
 
-        <Tabs defaultValue="all">
+        <Tabs defaultValue="posts">
           <TabsList>
-            <TabsTrigger value="all">全部</TabsTrigger>
-            <TabsTrigger value="posts">内容</TabsTrigger>
+            <TabsTrigger value="posts">帖子</TabsTrigger>
             <TabsTrigger value="users">用户</TabsTrigger>
             <TabsTrigger value="tags">标签</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="mt-6">
+          <TabsContent value="posts" className="mt-4">
             {posts.length > 0 ? (
               <div className="masonry-grid">
                 {posts.map((post) => (
@@ -59,7 +58,7 @@ export default async function SearchPage({
             )}
           </TabsContent>
 
-          <TabsContent value="posts" className="mt-6">
+          <TabsContent value="posts" className="mt-4">
             {posts.length > 0 ? (
               <div className="masonry-grid">
                 {posts.map((post) => (
@@ -73,11 +72,11 @@ export default async function SearchPage({
             )}
           </TabsContent>
 
-          <TabsContent value="users" className="mt-6">
+          <TabsContent value="users" className="mt-4">
             <p className="text-center text-muted-foreground py-12">用户搜索功能开发中...</p>
           </TabsContent>
 
-          <TabsContent value="tags" className="mt-6">
+          <TabsContent value="tags" className="mt-4">
             <p className="text-center text-muted-foreground py-12">标签搜索功能开发中...</p>
           </TabsContent>
         </Tabs>

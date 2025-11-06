@@ -13,7 +13,7 @@ export function ProductCardDetail({ product }: ProductCardDetailProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{product.title || '新建商品'}</CardTitle>
+        <CardTitle>{product.name || '新建商品'}</CardTitle>
       </CardHeader> 
       <CardContent>
         <p>{product.description || '新建商品描述'}</p>

@@ -1,16 +1,13 @@
+'use client'
 import Link from "next/link"
-import { ChevronRight, Flame, Rocket } from "lucide-react"
+import { ChevronRight, Flame, Loader2, Rocket } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useSpotlightPosts } from "@/lib/hooks/use-spotlight-posts"
+import type { SpotlightPost } from "@/lib/supabase/api/spotlight"
 
-const hotTopics = [
-  { rank: 1, title: "Sora AI 2.0发布重大更新", highlight: true },
-  { rank: 4, title: "AI大模型应用落地加速" },
-  { rank: 5, title: "Midjourney V6更新重大功能" },
-  { rank: 6, title: "Nano banana发布重大更新" },
-]
 
 const aiTools = [
   { rank: 1, name: "Sora AI", category: "文本生成视频", isNew: true, icon: "🚀" },
@@ -27,6 +24,13 @@ const creators = [
 ]
 
 export function SidebarRight() {
+  const { data: spotlightPosts = [], isLoading, error } = useSpotlightPosts(6)
+  const hotTopics = spotlightPosts.map((post: SpotlightPost, index: number) => ({
+    rank: index + 1,
+    title: post.title,
+    highlight: post.badge === "hot",
+  }))
+
   return (
     <div className="sticky top-20 space-y-4">
       <Card className="border-border/40 shadow-apple hover:shadow-apple-lg transition-apple">
@@ -50,7 +54,13 @@ export function SidebarRight() {
           </div>
         </CardHeader>
         <CardContent className="space-y-1">
-          {hotTopics.map((topic) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            hotTopics.length > 0 ? (
+              hotTopics.map((topic) => (  
             <Link
               key={topic.rank}
               href={`/topic/${topic.rank}`}
@@ -74,7 +84,12 @@ export function SidebarRight() {
                 {topic.title}
               </span>
             </Link>
-          ))}
+            ))) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">暂无热门话题</p>
+            </div>
+          )
+          ) }
         </CardContent>
       </Card>
 

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useRef } from "react"
 import Image from "next/image"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DndContext,
@@ -24,9 +24,12 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
+type ImageUploaderType = "grid" | "horizontal"
+
 interface ImageUploaderProps {
   images: string[]
   onChange: (images: string[]) => void
+  type?: ImageUploaderType
 }
 
 interface SortableItemProps {
@@ -34,9 +37,10 @@ interface SortableItemProps {
   image: string
   index: number
   onRemove: (index: number) => void
+  size?: "default" | "compact"
 }
 
-function SortableItem({ id, image, index, onRemove }: SortableItemProps) {
+function SortableItem({ id, image, index, onRemove, size = "default" }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -52,11 +56,13 @@ function SortableItem({ id, image, index, onRemove }: SortableItemProps) {
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const sizeClass = size === "compact" ? "w-24 h-24 flex-shrink-0" : "aspect-square"
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="relative aspect-square rounded-lg overflow-hidden bg-muted group"
+      className={`relative ${sizeClass} rounded-lg overflow-hidden bg-muted group`}
     >
       <div 
         {...attributes}
@@ -87,7 +93,7 @@ function SortableItem({ id, image, index, onRemove }: SortableItemProps) {
   )
 }
 
-export function ImageUploader({ images, onChange }: ImageUploaderProps) {
+export function ImageUploader({ images, onChange, type = "grid" }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const sensors = useSensors(
@@ -123,36 +129,64 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
     }
   }
 
-  return (
-    <div className="space-y-4">
-      <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
+  const renderUploadButton = () => {
+    if (images.length >= 10) return null
 
-      {/* Upload Button */}
-      {images.length < 10 && (
+    if (type === "horizontal") {
+      return (
         <Button
           type="button"
           variant="outline"
-          className="w-full h-32 border-dashed bg-transparent"
+          className="w-24 h-24 border border-border rounded-lg bg-transparent hover:bg-muted/50 flex-shrink-0 flex items-center justify-center"
           onClick={() => fileInputRef.current?.click()}
         >
-          <div className="flex flex-col items-center gap-2">
-            <Upload className="h-8 w-8 text-muted-foreground" />
-            <div className="text-sm text-muted-foreground">点击上传图片（最多10张）</div>
-          </div>
+          <Plus className="w-6 h-6 text-muted-foreground" />
         </Button>
-      )}
+      )
+    }
 
-      {/* Image Grid */}
-      {images.length > 0 && (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full h-[120px] border-dashed bg-transparent"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <div className="flex flex-col items-center gap-2">
+          <Upload className="w-full text-muted-foreground" />
+          <div className="text-sm text-muted-foreground">点击上传图片（最多10张）</div>
+        </div>
+      </Button>
+    )
+  }
+
+  const renderImages = () => {
+    if (images.length === 0) return null
+
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={images.map((_, index) => index.toString())}
+          strategy={rectSortingStrategy}
         >
-          <SortableContext
-            items={images.map((_, index) => index.toString())}
-            strategy={rectSortingStrategy}
-          >
+          {type === "horizontal" ? (
+            <div className="flex gap-3 overflow-x-auto">
+              {images.map((image, index) => (
+                <SortableItem
+                  key={index}
+                  id={index.toString()}
+                  image={image}
+                  index={index}
+                  onRemove={handleRemove}
+                  size="compact"
+                />
+              ))}
+            </div>
+          ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {images.map((image, index) => (
                 <SortableItem
@@ -164,9 +198,40 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
                 />
               ))}
             </div>
-          </SortableContext>
-        </DndContext>
-      )}
+          )}
+        </SortableContext>
+      </DndContext>
+    )
+  }
+
+  if (type === "horizontal") {
+    return (
+      <div className="space-y-4">
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
+        
+        <div className="flex items-center gap-3">
+          {/* 已上传的图片在左边 */}
+          {renderImages()}
+          
+          {/* 上传按钮在右侧 */}
+          {renderUploadButton()}
+        </div>
+
+        <p className="text-xs text-muted-foreground">已上传 {images.length} / 10 张图片</p>
+      </div>
+    )
+  }
+
+  // 默认 grid 布局
+  return (
+    <div className="space-y-4">
+      <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
+
+      {/* Upload Button */}
+      {renderUploadButton()}
+
+      {/* Image Grid */}
+      {renderImages()}
 
       <p className="text-xs text-muted-foreground">已上传 {images.length} / 10 张图片</p>
     </div>

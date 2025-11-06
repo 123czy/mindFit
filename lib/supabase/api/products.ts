@@ -19,6 +19,14 @@ export interface CreateProductParams {
   stock?: number;
   chain_product_id?: number;
   work_id?: string | null;
+  contentData?: {
+    exampleImages?: string[];
+    guidance?: string;
+    examplePrompts?: Array<{
+      imageUrl: string;
+      prompt: string;
+    }>;
+  };
 }
 
 /**
@@ -26,7 +34,7 @@ export interface CreateProductParams {
  */
 export async function createProduct(params: CreateProductParams) {
   try {
-    const productData: ProductInsert = {
+    const productData: any = {
       user_id: params.userId,
       wallet_address: params.walletAddress.toLowerCase(),
       post_id: params.postId || null,
@@ -40,8 +48,13 @@ export async function createProduct(params: CreateProductParams) {
       stock: params.stock || null,
       is_active: true,
       chain_product_id: params.chain_product_id,
-      work_id: params.work_id,
+      work_id: params.work_id || null,
     };
+
+    // 如果有 contentData，添加到 productData 中
+    if (params.contentData) {
+      productData.content_data = params.contentData;
+    }
 
     const { data, error } = await supabase
       .from("products")
@@ -169,6 +182,7 @@ export async function getProductsByPostIds(postIds: string[]) {
  */
 export async function updateProduct(productId: string, updates: ProductUpdate) {
   try {
+    // @ts-ignore - Supabase type issue
     const { data, error } = await supabase
       .from("products")
       .update(updates)
@@ -212,9 +226,10 @@ export async function incrementSalesCount(productId: string) {
       .single();
 
     if (product) {
+      // @ts-ignore - Supabase type issue
       await supabase
         .from("products")
-        .update({ sales_count: product.sales_count + 1 })
+        .update({ sales_count: (product as any).sales_count + 1 })
         .eq("id", productId);
     }
 
@@ -239,8 +254,9 @@ export async function updateProductStock(
       .eq("id", productId)
       .single();
 
-    if (product && product.stock !== null) {
-      const newStock = product.stock + quantityChange;
+    if (product && (product as any).stock !== null) {
+      const newStock = (product as any).stock + quantityChange;
+      // @ts-ignore - Supabase type issue
       await supabase
         .from("products")
         .update({ stock: newStock })

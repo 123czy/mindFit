@@ -13,13 +13,18 @@ interface UsePostsOptions {
 }
 
 /**
- * 优化的 usePosts Hook - 使用 React Query 实现缓存和自动重新验证
+ * 优化的 usePosts Hook - 使用 React Query 实现数据获取
  *
  * 特性：
  * 1. 批量获取 products（减少 N+1 查询问题）
- * 2. 自动缓存数据（2分钟，从配置中读取）
- * 3. 从详情页返回时使用缓存，不重新加载
- * 4. 后台自动重新验证（保持数据新鲜）
+ * 2. 每次刷新页面都获取新数据（不使用缓存）
+ * 3. SSR 预填充数据用于首屏快速显示
+ * 4. 客户端组件挂载时立即重新获取最新数据
+ *
+ * 缓存策略：
+ * - staleTime: 0 - 不缓存，每次都需要重新获取
+ * - refetchOnMount: true - 组件挂载时重新获取
+ * - 确保每次刷新页面看到不同的内容
  */
 export function usePostsOptimized(options?: UsePostsOptions) {
   const queryKey = [
@@ -62,11 +67,13 @@ export function usePostsOptimized(options?: UsePostsOptions) {
       return mappedPosts;
     },
     enabled: options?.enabled !== false, // 默认启用
-    // 使用配置中的缓存时间
-    staleTime: CACHE_TIMES.POSTS.staleTime, // 2分钟缓存
+    // 每次刷新页面时获取新数据，不使用缓存
+    staleTime: 0, // 不缓存，每次都需要重新获取
     gcTime: CACHE_TIMES.POSTS.gcTime, // 5分钟垃圾回收
-    // 使用列表查询预设
-    ...QUERY_PRESETS.list,
+    // 每次挂载时都重新获取数据
+    refetchOnMount: true, // 组件挂载时重新获取
+    refetchOnWindowFocus: false, // 窗口聚焦时不重新获取
+    retry: 1, // 失败时重试1次
   });
 
   return {

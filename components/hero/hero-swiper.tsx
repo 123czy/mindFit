@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Eye, Heart, Sparkles } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useSpotlightPosts } from '@/lib/hooks/use-spotlight-posts'
+import type { SpotlightPost } from '@/lib/supabase/api/spotlight'
 
 interface Project {
-  id: number
+  id: string
   title: string
   description: string
   image: string
@@ -22,114 +24,9 @@ interface Project {
     likes: number
   }
   tags: string[]
-  badge: string
+  badge: string | null
   detailUrl: string
 }
-
-const spotlightProjects: Project[] = [
-  {
-    id: 1,
-    title: "AI 创意工作室",
-    description: "探索最前沿的 AI 创作工具和技术，让创意变得触手可及",
-    image: "/ai-interface-design.jpg",
-    author: {
-      name: "张艺",
-      avatar: "/professional-avatar.png"
-    },
-    stats: {
-      views: 1248,
-      likes: 342
-    },
-    tags: ["AI工具", "创意设计"],
-    badge: "热门",
-    detailUrl: "/post/1"
-  },
-  {
-    id: 2,
-    title: "数字艺术生成器",
-    description: "使用最新的 AI 模型生成独特的数字艺术作品",
-    image: "/ai-generated-art-landscape.jpg",
-    author: {
-      name: "李明",
-      avatar: "/artist-avatar.png"
-    },
-    stats: {
-      views: 856,
-      likes: 234
-    },
-    tags: ["数字艺术", "AI生成"],
-    badge: "精选",
-    detailUrl: "/post/2"
-  },
-  {
-    id: 3,
-    title: "AI 肖像摄影",
-    description: "通过 AI 技术创造出色的肖像摄影效果",
-    image: "/ai-portrait-photography.jpg",
-    author: {
-      name: "王芳",
-      avatar: "/creative-avatar.jpg"
-    },
-    stats: {
-      views: 723,
-      likes: 198
-    },
-    tags: ["肖像摄影", "AI艺术"],
-    badge: "新作",
-    detailUrl: "/post/3"
-  },
-  {
-    id: 4,
-    title: "未来城市概念",
-    description: "展示未来城市的概念设计和视觉效果",
-    image: "/futuristic-cityscape.png",
-    author: {
-      name: "赵强",
-      avatar: "/professional-avatar.png"
-    },
-    stats: {
-      views: 612,
-      likes: 156
-    },
-    tags: ["概念设计", "未来"],
-    badge: "推荐",
-    detailUrl: "/post/4"
-  },
-  {
-    id: 5,
-    title: "创意工作流程",
-    description: "分享高效的创意工作流程和工具使用技巧",
-    image: "/content-creation-tools.png",
-    author: {
-      name: "孙丽",
-      avatar: "/artist-avatar.png"
-    },
-    stats: {
-      views: 543,
-      likes: 127
-    },
-    tags: ["工作流程", "效率"],
-    badge: "推荐",
-    detailUrl: "/post/5"
-  },
-  {
-    id: 6,
-    title: "抽象数字艺术",
-    description: "探索抽象艺术与数字技术的完美结合",
-    image: "/abstract-digital-composition.png",
-    author: {
-      name: "陈伟",
-      avatar: "/professional-avatar.png"
-    },
-    stats: {
-      views: 489,
-      likes: 103
-    },
-    tags: ["抽象艺术", "数字"],
-    badge: "新作",
-    detailUrl: "/post/6"
-  }
-]
 
 const badgeColors: Record<string, string> = {
   "热门": "bg-orange-500/90",
@@ -139,7 +36,58 @@ const badgeColors: Record<string, string> = {
 }
 
 export function HeroSwiper() {
-  const [activeProject, setActiveProject] = useState<Project>(spotlightProjects[0])
+  const { data: spotlightPosts = [], isLoading, error } = useSpotlightPosts(6)
+  const [activeProject, setActiveProject] = useState<Project | null>(null)
+
+  // 转换数据格式
+  const projects: Project[] = spotlightPosts.map((post: SpotlightPost) => ({
+    id: post.id,
+    title: post.title,
+    description: post.description,
+    image: post.image,
+    author: post.author,
+    stats: post.stats,
+    tags: post.tags,
+    badge: post.badge,
+    detailUrl: post.detailUrl,
+  }))
+
+  // 设置默认激活的项目
+  useEffect(() => {
+    if (projects.length > 0 && !activeProject) {
+      setActiveProject(projects[0])
+    }
+  }, [projects, activeProject])
+
+  // 加载状态
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <Card className="overflow-hidden rounded-xl md:rounded-2xl border-0 bg-card shadow-lg p-2">
+          <div className="flex items-center justify-center h-[400px]">
+            <div className="text-muted-foreground">加载中...</div>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  // 错误状态
+  if (error || projects.length === 0) {
+    return (
+      <div className="w-full">
+        <Card className="overflow-hidden rounded-xl md:rounded-2xl border-0 bg-card shadow-lg p-2">
+          <div className="flex items-center justify-center h-[400px]">
+            <div className="text-muted-foreground">暂无精选内容</div>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!activeProject) {
+    return null
+  }
 
   return (
     <div className="w-full">
@@ -223,7 +171,7 @@ export function HeroSwiper() {
           <div className="border-t lg:border-t-0 ">
             <ScrollArea className="h-[260px] lg:h-[400px]">
               <div className="px-3 space-y-2.5">
-                {spotlightProjects.map((project, index) => (
+                {projects.map((project) => (
                   <Link
                     key={project.id}
                     href={project.detailUrl}
@@ -247,11 +195,13 @@ export function HeroSwiper() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent" />
                       
                       {/* Badge */}
-                      <div className="absolute top-2 right-2">
-                        <Badge className={`${badgeColors[project.badge]} text-white border-0 text-[10px] px-2 py-0.5 shadow-lg`}>
-                          {project.badge}
-                        </Badge>
-                      </div>
+                      {project.badge && (
+                        <div className="absolute top-2 right-2">
+                          <Badge className={`${badgeColors[project.badge] || badgeColors["推荐"]} text-white border-0 text-[10px] px-2 py-0.5 shadow-lg`}>
+                            {project.badge}
+                          </Badge>
+                        </div>
+                      )}
 
                       {/* Project Info Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-3">

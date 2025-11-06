@@ -17,9 +17,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   }
 
   // 获取关联的商品
-  const { data: products } = await getProductsByPostId('e0d74a12-5942-4f29-89da-2f3c07a920a0')
+  const { data: products } = await getProductsByPostId('159b9ed8-3c28-4dca-a229-8097b414cbeb')
 
-  const post = mapDbPostToPost(dbPost as any, products || [])
+  const post = mapDbPostToPost(dbPost as any, [...(products || [])])
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,7 +36,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           <div className="space-y-6">
             <PostContent post={post} />
             <PostAuthorCard author={post.author} />
-            {/* {post.hasPaidContent && post.products && <PaidContentSection products={post.products} />} */}
+            <PaidContentSection products={post.products || []} />
           </div>
         </div>
 

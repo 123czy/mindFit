@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { Providers } from "./providers"
 import "./globals.css"
+import Script from "next/dist/client/script"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -21,6 +22,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+       <head>
+        {/* Google Identity Services */}
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`font-sans antialiased`}>
         <Providers>{children}</Providers>
         <Toaster />

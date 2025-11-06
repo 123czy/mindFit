@@ -59,9 +59,9 @@ export function CommentInput({ postId, parentCommentId, onCancel }: CommentInput
               maxLength={500}
             />
           </div>
-          <div className="h-9 w-9 flex items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
+          {/* <div className="h-9 w-9 flex items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
             <ImageIcon className="h-4 w-4" />
-          </div>
+          </div> */}
         </div>
 
         {/* 操作区：聚焦或有内容时显示 */}

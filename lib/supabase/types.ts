@@ -62,6 +62,7 @@ export interface Database {
           comment_count: number;
           created_at: string;
           updated_at: string;
+          badge: string | null;
         };
         Insert: {
           id?: string;
@@ -79,6 +80,7 @@ export interface Database {
           comment_count?: number;
           created_at?: string;
           updated_at?: string;
+          badge?: string | null;
         };
         Update: {
           id?: string;
@@ -96,6 +98,7 @@ export interface Database {
           comment_count?: number;
           created_at?: string;
           updated_at?: string;
+          badge?: string | null;
         };
       };
       products: {

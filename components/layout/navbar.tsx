@@ -61,7 +61,7 @@ export function Navbar() {
   const searchTypeLabels = {
     posts: "帖子",
     users: "用户",
-    tags: "标签",
+    tags: "商品",
   }
 
   return (
@@ -116,7 +116,7 @@ export function Navbar() {
                       <DropdownMenuItem
                         onClick={() => setSearchType("tags")}
                       >
-                        <span className={searchType === "tags" ? "font-bold" : ""}>标签</span>
+                        <span className={searchType === "tags" ? "font-bold" : ""}>商品</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "start": "next start",
     "db:seed": "dotenv -e .env.local -- tsx scripts/seed-database.ts",
+    "db:seed:spotlight": "dotenv -e .env.local -- tsx scripts/seed-spotlight-posts.ts",
     "db:init": "./scripts/init-database.sh"
   },
   "dependencies": {

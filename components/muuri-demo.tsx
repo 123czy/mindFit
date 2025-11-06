@@ -6,9 +6,10 @@ import { shapeConfig } from "@/lib/types/bento"
 import { BentoElementComponent } from "./bento/bento-element"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Lock, Sparkles } from "lucide-react"
+import { Lock, Sparkles, X } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth/auth-context"
+import { BentoImages } from "./bento/bento-images"
 interface MuuriDemoProps {
   elements: BentoElement[]
   isEditing: boolean
@@ -19,6 +20,52 @@ interface MuuriDemoProps {
   onUnlock?: () => void
   profilePrice?: number
 }
+
+interface Item {
+    id: string;
+    img: string;
+    url: string;
+    height: number;
+}
+  
+const items: Item[] = [
+      {
+        id: "1",
+        img: "https://picsum.photos/id/1015/600/900?grayscale",
+        url: "https://example.com/one",
+        height: 400,
+      },
+      {
+        id: "2",
+        img: "https://picsum.photos/id/1011/600/750?grayscale",
+        url: "https://example.com/two",
+        height: 250,
+      },
+      {
+        id: "3",
+        img: "https://picsum.photos/id/1020/600/800?grayscale",
+        url: "https://example.com/three",
+        height: 600,
+      },
+      {
+        id: "4",
+        img: "https://picsum.photos/id/1011/600/750?grayscale",
+        url: "https://example.com/two",
+        height: 500,
+      },
+      {
+        id: "5",
+        img: "https://picsum.photos/id/1020/600/800?grayscale",
+        url: "https://example.com/three",
+        height: 600,
+      },
+      {
+        id: "6",
+        img: "https://picsum.photos/id/1015/600/900?grayscale",
+        url: "https://example.com/one",
+        height: 250,
+      },
+];
 
 const BASE = 100
 const GUTTER = 10
@@ -35,6 +82,7 @@ export function MuuriDemo({
 }: MuuriDemoProps) {
   const { isAuthenticated } = useAuth()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isShowImages, setIsShowImages] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
   const muuriRef = useRef<any>(null)
 
@@ -181,6 +229,10 @@ export function MuuriDemo({
     }
   }
 
+  const handleClickImages = () => {
+    setIsShowImages(!isShowImages)
+  }
+
   return (
     <div
       className={cn(
@@ -223,6 +275,7 @@ export function MuuriDemo({
                 onAddLink={(id, url) => handleAddLink(id, url)}
                 onColorChange={(id, color) => handleColorChange(id, color)}
                 onContentChange={(id, content) => handleContentChange(id, content)}
+                onClickImages={() => handleClickImages()}
               />
             </div>
           )
@@ -235,6 +288,15 @@ export function MuuriDemo({
             <p className="text-muted-foreground">
               {isEditing ? "点击下方按钮添加元素" : "暂无内容"}
             </p>
+          </div>
+        )}
+
+        {isShowImages && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background backdrop-blur-sm rounded-2xl">
+            <p className="absolute top-0 right-0 z-9999"><Button variant="outline" className="rounded-full" size="icon" onClick={() => setIsShowImages(false)}><X className="w-4 h-4 cursor-pointer" /></Button></p>
+            <div className="w-full h-full pt-12 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
+                <BentoImages items={items}  />
+            </div>
           </div>
         )}
       </div>

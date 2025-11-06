@@ -7,6 +7,9 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
 
+// 默认请求超时时间（毫秒）
+const DEFAULT_TIMEOUT = 8000; // 8秒
+
 export interface ApiError {
   message: string;
   code?: string;
@@ -73,6 +76,12 @@ export async function refreshAccessToken(): Promise<string | null> {
 
   isRefreshing = true;
   refreshPromise = (async () => {
+    // 创建 AbortController 用于超时控制
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, DEFAULT_TIMEOUT);
+
     try {
       // 刷新 token 使用 cookie，不需要 Authorization header
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -81,7 +90,10 @@ export async function refreshAccessToken(): Promise<string | null> {
         headers: {
           "Content-Type": "application/json",
         },
+        signal: abortController.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         clearAuthToken();
@@ -96,7 +108,14 @@ export async function refreshAccessToken(): Promise<string | null> {
 
       return null;
     } catch (error) {
-      console.error("Failed to refresh token:", error);
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error && error.name === "AbortError") {
+        console.error("Token refresh timeout");
+      } else {
+        console.error("Failed to refresh token:", error);
+      }
+
       clearAuthToken();
       return null;
     } finally {
@@ -114,6 +133,7 @@ export async function refreshAccessToken(): Promise<string | null> {
 interface RequestConfig extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
   skipAuth?: boolean;
+  timeout?: number; // 请求超时时间（毫秒），默认 30 秒
 }
 
 /**
@@ -209,7 +229,12 @@ class ApiClient {
    * 通用请求方法
    */
   async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
-    const { params, skipAuth = false, ...fetchConfig } = config;
+    const {
+      params,
+      skipAuth = false,
+      timeout = DEFAULT_TIMEOUT,
+      ...fetchConfig
+    } = config;
 
     const url = buildUrl(endpoint, params);
     const headers = new Headers(fetchConfig.headers);
@@ -227,15 +252,25 @@ class ApiClient {
       }
     }
 
+    // 创建 AbortController 用于超时控制
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, timeout);
+
     // 确保包含 credentials（cookie）用于 refresh token
     const fetchOptions: RequestInit = {
       ...fetchConfig,
       headers,
       credentials: "include",
+      signal: abortController.signal,
     };
 
     try {
       let response = await fetch(url, fetchOptions);
+
+      // 清除超时定时器（请求成功）
+      clearTimeout(timeoutId);
 
       // 如果返回 401 且不是刷新 token 的请求，尝试刷新 token
       if (
@@ -245,19 +280,50 @@ class ApiClient {
       ) {
         const newToken = await refreshAccessToken();
         if (newToken) {
-          // 使用新 token 重试请求
-          headers.set("Authorization", `Bearer ${newToken}`);
-          response = await fetch(url, {
-            ...fetchOptions,
-            headers,
-          });
+          // 创建新的 AbortController 用于重试请求
+          const retryAbortController = new AbortController();
+          const retryTimeoutId = setTimeout(() => {
+            retryAbortController.abort();
+          }, timeout);
+
+          try {
+            // 使用新 token 重试请求
+            headers.set("Authorization", `Bearer ${newToken}`);
+            response = await fetch(url, {
+              ...fetchOptions,
+              headers,
+              signal: retryAbortController.signal,
+            });
+            clearTimeout(retryTimeoutId);
+          } catch (retryError) {
+            clearTimeout(retryTimeoutId);
+            if (
+              retryError instanceof Error &&
+              retryError.name === "AbortError"
+            ) {
+              throw new ApiClientError(
+                `请求超时（${timeout}ms）`,
+                408,
+                "TIMEOUT"
+              );
+            }
+            throw retryError;
+          }
         }
       }
 
       return handleResponse<T>(response);
     } catch (error) {
+      // 清除超时定时器（请求失败）
+      clearTimeout(timeoutId);
+
       if (error instanceof ApiClientError) {
         throw error;
+      }
+
+      // 处理超时错误
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new ApiClientError(`请求超时（${timeout}ms）`, 408, "TIMEOUT");
       }
 
       // 网络错误

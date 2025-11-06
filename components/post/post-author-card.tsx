@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { User } from "@/lib/types"
-import { Download, Heart, MessageCircle } from "lucide-react"
+import { Download, Heart, MessageCircle,UserRound } from "lucide-react"
 
 interface PostAuthorCardProps {
   author: User
@@ -11,7 +11,7 @@ interface PostAuthorCardProps {
 
 export function PostAuthorCard({ author }: PostAuthorCardProps) {
   return (
-    <Card className="py-2">
+    <Card className="py-3">
       <CardContent className="space-y-4">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
@@ -28,16 +28,16 @@ export function PostAuthorCard({ author }: PostAuthorCardProps) {
           </div>
          
           <div className="flex items-center gap-2">
-            <div className="flex items-center cursor-pointer bg-transparent">
-              <Heart className="mr-2 h-3 w-3 text-muted-foreground" />
+            <div className="flex items-center cursor-pointer bg-transparent font-medium">
+              <Heart className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground text-sm">{author.likeCount || 10}</span>
             </div>
-            <div  className="flex items-center cursor-pointer bg-transparent">
-              <MessageCircle className="mr-2 h-3 w-3 text-muted-foreground" />
+            <div  className="flex items-center cursor-pointer bg-transparent font-medium">
+              <UserRound className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground text-sm">{author.commentCount || 10}</span>
             </div>
-            <div  className="flex items-center cursor-pointer bg-transparent">
-              <Download className="mr-2 h-3 w-3 text-muted-foreground" />
+            <div  className="flex items-center cursor-pointer bg-transparent font-medium">
+              <Download className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground text-sm">{author.downloadCount || 10}</span>
             </div>
           </div>
