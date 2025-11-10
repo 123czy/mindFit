@@ -1,4 +1,5 @@
 import type React from "react"
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
@@ -30,7 +31,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        <Suspense fallback={null}>
+          <Providers>{children}</Providers>
+        </Suspense>
         <Toaster />
       </body>
     </html>

@@ -18,12 +18,6 @@ import { ImageUploader } from "@/components/publish/image-uploader"
 import { toast } from "sonner"
 import { useCurrentUser } from "@/lib/hooks/use-current-user"
 import { createProduct, getProductById } from "@/lib/supabase/api"
-import { parseUnits } from "viem"
-import { useAccount } from "wagmi"
-import {
-  useListWork,
-  generateWorkId,
-} from "@/lib/contracts/hooks/use-marketplace-v2"
 import type { Product } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,8 +33,6 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
   const editProductId = searchParams?.get("productId") || undefined
 
   const { user, isAuthenticated } = useCurrentUser()
-  const { address, isConnected } = useAccount()
-  const { listWork, isPending: isListing } = useListWork()
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingProduct, setIsLoadingProduct] = useState(
@@ -143,10 +135,6 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
   const handleSubmit = async (event?: React.FormEvent) => {
     event?.preventDefault()
 
-    if (!isConnected || !address) {
-      toast.error("请先连接钱包")
-      return
-    }
     if (!isAuthenticated || !user) {
       toast.error("请先登录")
       return
@@ -157,19 +145,6 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
     }
 
     setIsSubmitting(true)
-
-    let workId = ""
-    try {
-      const nonce = BigInt(Date.now())
-      workId = generateWorkId(address, nonce)
-      const priceInWei = parseUnits(formData.price === "Free" ? "0" : formData.price, 6)
-      await listWork(workId, priceInWei)
-    } catch (error) {
-      console.error("[CreateProduct] On-chain listing failed:", error)
-      toast.error("商品上链失败")
-      setIsSubmitting(false)
-      return
-    }
 
     try {
       const examplePrompts = formData.exampleImages.map((imageUrl, index) => {
@@ -189,7 +164,7 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
 
       const { data, error } = await createProduct({
         userId: user.id,
-        walletAddress: user.wallet_address,
+        walletAddress: user.wallet_address || "",
         postId: postId || null,
         name: formData.name,
         description: formData.description,
@@ -203,7 +178,7 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
         category: formData.category || "text",
         stock: formData.stock ? parseInt(formData.stock) : undefined,
         chain_product_id: (Date.now() % 86) + 15,
-        work_id: workId,
+        work_id: null,
         contentData: {
           exampleImages: formData.exampleImages,
           guidance: formData.guidance,
@@ -563,6 +538,19 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
           </div>
         </div>
       </Card>
+
+      <div className="flex items-center justify-end gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => router.back()}
+        >
+          取消
+        </Button>
+        <Button type="submit" className="px-8" disabled={isSubmitting}>
+          {isSubmitting ? "提交中..." : isEditMode ? "保存商品" : "创建商品"}
+        </Button>
+      </div>
     </form>
   )
 }

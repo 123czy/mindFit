@@ -1,7 +1,6 @@
 "use client"
 import { Lock } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { ProductCardInPost } from "@/components/product/product-card-in-post"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ProductCardDetail } from "@/components/product/product-card-detail"
 import type { Product } from "@/lib/types"
 
