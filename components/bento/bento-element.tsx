@@ -1,88 +1,22 @@
 "use client"
 
-import { ReactNode, useState, useRef, useEffect } from "react"
+import { ReactNode, useState, useRef, useEffect, useMemo } from "react"
 import { createPortal } from "react-dom"
-import { X, Link2, Maximize, Minimize ,ExternalLink} from "lucide-react"
-import type { BentoElement, BentoShape } from "@/lib/types/bento"
+import { X, Link2, Maximize, Minimize ,ExternalLink, Folder as FolderIcon, FileText, Eye, EyeOff } from "lucide-react"
+import type { BentoElement, BentoShape, PlatformSlug } from "@/lib/types/bento"
 import { shapeConfig } from "@/lib/types/bento"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { FallbackImage } from "@/components/ui/fallback-image"
 import { ColorPicker } from "@/components/ui/color-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import Stack from "../Stack"
-import Folder from "../Folder"
+import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { PlatformIcon } from "./platform-icons"
+import type { LinkBentoElement } from "@/lib/types/bento"   
 
-const images = [
-    {
-        id: "1",
-        img: "https://picsum.photos/id/1015/600/900?grayscale",
-        url: "https://example.com/one",
-        height: 400,
-      },
-      {
-        id: "2",
-        img: "https://picsum.photos/id/1011/600/750?grayscale",
-        url: "https://example.com/two",
-        height: 250,
-      },
-      {
-        id: "3",
-        img: "https://picsum.photos/id/1020/600/800?grayscale",
-        url: "https://example.com/three",
-        height: 600,
-      },
-]
-
-const posts = [
-    {
-        id: "1",
-        title: "Post 1hghjsdgfhsdf",
-        content: "Content 1",
-        image: "https://picsum.photos/id/1015/600/600?grayscale",
-        url: "https://example.com/one",
-    },
-    {
-        id: "2",
-        title: "Post 2dsfdsfsdfds",
-        content: "Content 2",
-        image: "https://picsum.photos/id/1011/600/600?grayscale",
-        url: "https://example.com/two",
-    },
-    {
-        id: "3",
-        title: "Post 3werewerewrew",
-        content: "Content 3",
-        image: "https://picsum.photos/id/1020/600/600?grayscale",
-        url: "https://example.com/three",
-    },
-]
-const cards = [
-    {
-        id: "1",
-        name: "Card 1rerwrwrwrwrewr",
-        bio: "Content 1",
-        avatar: "https://picsum.photos/id/1015/900/600?grayscale",
-        type:"send"
-    },
-    {
-        id: "2",
-        name: "Card2erererer43243",
-        bio: "Content 2",
-        avatar: "https://picsum.photos/id/1011/600/600?grayscale",
-        type:"buy"
-    },
-    {
-        id: "3",
-        name: "Card3rererewrwe",
-        bio: "Content 3ghsdgagdahsdgagdajhs",
-        avatar: "https://picsum.photos/id/1020/600/800?grayscale",
-        type:"buy"
-    }
-]
 interface BentoElementProps {
   element: BentoElement
   isEditing: boolean
@@ -94,6 +28,7 @@ interface BentoElementProps {
   onColorChange?: (id: string, color: string) => void
   onContentChange?: (id: string, content: string) => void
   onClickImages?: () => void
+  onElementUpdate?: (id: string, updates: Partial<BentoElement>) => void
 }
 
 export function BentoElementComponent({
@@ -107,10 +42,11 @@ export function BentoElementComponent({
   onColorChange,
   onContentChange,
   onClickImages,
+  onElementUpdate,
 }: BentoElementProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [showShapeMenu, setShowShapeMenu] = useState(false)
-  const [color, setColor] = useState("#E3825D")
+  const [color, setColor] = useState(element.color || "#4F46E5")
   // 使用 element.shape 作为 key 来强制重新计算
   const config = shapeConfig[element.shape]
   const gridColumnSpan = config.width 
@@ -123,6 +59,35 @@ export function BentoElementComponent({
   const [isEditingText, setIsEditingText] = useState(false)
   const [textValue, setTextValue] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [folderTitle, setFolderTitle] = useState(element.title || "新建文件夹")
+  const [folderSubtitle, setFolderSubtitle] = useState(
+    element.subtitle || element.description || `${element.itemCount ?? 0} items`
+  )
+  const [folderCount, setFolderCount] = useState(element.itemCount ?? 0)
+  const [folderPublic, setFolderPublic] = useState(
+    element.isPublic ?? true
+  )
+  const handleFolderMetaUpdate = (updates: Partial<BentoElement>) => {
+    onElementUpdate?.(element.id, updates)
+  }
+
+  useEffect(() => {
+    setColor(element.color || "#4F46E5")
+  }, [element.color])
+  const linkIconNode = useMemo(() => {
+    if (!(element as LinkBentoElement).icon) {
+      return <PlatformIcon className="h-6 w-6 text-white" />
+    }
+    if (typeof (element as LinkBentoElement).icon === "string" && /^[a-z]+$/i.test((element as LinkBentoElement)?.icon || '')) {
+      return (
+        <PlatformIcon
+          slug={(element as LinkBentoElement).icon as PlatformSlug}
+          className="h-6 w-6 text-white"
+        />
+      )
+    }
+    return <span className="text-2xl">{(element as LinkBentoElement).icon}</span>
+  }, [(element as LinkBentoElement).icon])
 
   // 计算弹出框位置
   useEffect(() => {
@@ -150,6 +115,17 @@ export function BentoElementComponent({
       setIsEditingText(true)
     }
   }, [element.id])
+
+  useEffect(() => {
+    if (element.type === "folder" || element.type === "stack") {
+      setFolderTitle(element.title || (element.type === "folder" ? "新建文件夹" : "新建合集"))
+      setFolderSubtitle(
+        element.subtitle || element.description || `${element.itemCount ?? 0} items`
+      )
+      setFolderCount(element.itemCount ?? 0)
+      setFolderPublic(element.isPublic ?? true)
+    }
+  }, [element])
   
   // util: convert hex color to rgba with alpha
   const hexToRgba = (hex: string, alpha: number) => {
@@ -167,28 +143,131 @@ export function BentoElementComponent({
     return ["square-1x1", "square-2x2", "rect-1x2", "rect-2x1", "rect-2x3"]
   }
 
-  const cardsNode = (): ReactNode[] => {
-    return (cards.map((card) => (
-    <div key={card.id} className="flex items-center justify-center p-2 rounded-2xl bg-transparent">
-      <div className="flex  items-center justify-center p-2 rounded-2xl bg-transparent">
-        <FallbackImage src={card.avatar} alt={card.name} fill className="rounded-lg relative" />
-        <div className="flex flex-col items-start justify-start w-full absolute bottom-0 left-0 right-0 ">
-          <p className="text-xs font-semibold line-clamp-1 w-full text-ellipsis overflow-hidden whitespace-nowrap text-white p-1">{card.name}</p>
-          <p className="text-xs opacity-80 line-clamp-1 w-full text-ellipsis overflow-hidden whitespace-nowrap text-white p-1">@{card.bio}</p>
-        </div>
-      </div>
-    </div>
-  )))}
+  const renderFolderCard = (variant: "folder" | "stack") => {
+    const icon = variant === "folder" ? (
+      <FolderIcon className="h-7 w-7" strokeWidth={1.8} />
+    ) : (
+      <FileText className="h-7 w-7" strokeWidth={1.8} />
+    )
+    const cardBg = hexToRgba(color, 0.08)
+    const borderColor = hexToRgba(color, 0.3)
+    const defaultSubtitle =
+      variant === "folder"
+        ? `${folderCount} items`
+        : `${folderCount} articles`
 
-  const postsNode = (): ReactNode[] => {
-    return (posts.map((post) => (
-    <div key={post.id} className="flex p-1 rounded-2xl bg-transparent flex-col items-start justify-start">      
-        <div className="max-w-full max-h-[4/5]">
-        <FallbackImage src={post.image} alt={post.title} fill={true} className="rounded-lg" />
+    const handleCardClick = () => {
+      if (isEditing) return
+      if (variant === "folder") {
+        router.push(`/artwork-preview?type=${element.foldType}`)
+      } else {
+        onClickImages?.()
+      }
+    }
+
+    return (
+      <div
+        className={cn(
+          "relative flex h-full w-full flex-col rounded-[28px] border bg-white/90 p-6 text-center shadow-lg transition-all",
+          !isEditing && "hover:shadow-xl"
+        )}
+        style={{ borderColor, backgroundColor: cardBg }}
+        onClick={handleCardClick}
+      >
+        {!folderPublic && (
+          <span className="absolute right-4 top-4 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow">
+            私密
+          </span>
+        )}
+        <div
+          className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-primary shadow-inner"
+          style={{ color }}
+        >
+          {icon}
         </div>
-        <p className="text-xs font-semibold line-clamp-1 w-full text-ellipsis overflow-hidden whitespace-nowrap">{post.title}</p>
-    </div>
-    )))}
+
+        {isEditing ? (
+          <Input
+            value={folderTitle}
+            onChange={(e) => setFolderTitle(e.target.value)}
+            onBlur={() =>
+              handleFolderMetaUpdate({
+                title:
+                  folderTitle ||
+                  (variant === "folder" ? "新建文件夹" : "新建合集"),
+              })
+            }
+            className="mb-2 text-center font-semibold"
+          />
+        ) : (
+          <p className="text-lg font-semibold text-foreground">{folderTitle}</p>
+        )}
+
+        {isEditing ? (
+          <Input
+            value={folderSubtitle}
+            onChange={(e) => setFolderSubtitle(e.target.value)}
+            onBlur={() =>
+              handleFolderMetaUpdate({
+                subtitle: folderSubtitle,
+                description: folderSubtitle,
+              })
+            }
+            className="text-center text-sm text-muted-foreground"
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {folderSubtitle || defaultSubtitle}
+          </p>
+        )}
+
+        {isEditing && (
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">内容数量</Label>
+              <Input
+                type="number"
+                min={0}
+                value={folderCount}
+                onChange={(e) => setFolderCount(Number(e.target.value))}
+                onBlur={() =>
+                  handleFolderMetaUpdate({
+                    itemCount: folderCount,
+                  })
+                }
+                className="h-9"
+              />
+            </div>
+            <Button
+              type="button"
+              variant={folderPublic ? "default" : "outline"}
+              size="sm"
+              className="w-full rounded-xl"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                const next = !folderPublic
+                setFolderPublic(next)
+                handleFolderMetaUpdate({ isPublic: next })
+              }}
+            >
+              {folderPublic ? (
+                <>
+                  <Eye className="mr-2 h-4 w-4" />
+                  对他人可见
+                </>
+              ) : (
+                <>
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  仅自己可见
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }
     
   const renderContent = () => {
     switch (element.type) {
@@ -228,10 +307,8 @@ export function BentoElementComponent({
             <div className={`bg-gradient-to-br p-2 rounded-xl`} style={{
               backgroundImage: `linear-gradient(135deg, ${hexToRgba(element.color || '#E3825D', 0.8)}, ${hexToRgba(element.color || '#E3825D', 0.9)})`
             }}>
-            <div className="flex items-start justify-between">
-              {element.icon && (
-                <span className="text-2xl">{element.icon}</span>
-              )}
+            <div className="flex items-start justify-between text-white">
+              {linkIconNode}
             </div>
             <div>
               <p className="font-semibold text-sm sm:text-base break-words">
@@ -324,33 +401,10 @@ export function BentoElementComponent({
         )
 
       case "stack":
-        return (
-          <div className="w-full h-full flex items-center justify-center p-4 rounded-2xl" onClick={() => {
-            if (isEditing) return
-            onClickImages?.()
-          }}>
-  <Stack
-  randomRotation={true}
-  sensitivity={180}
-  sendToBackOnClick={false}
-  cardDimensions={{ width: 200, height: 200 }}
-  cardsData={images}
-  />
-          </div>
-        )
+        return renderFolderCard("stack")
 
-    case "folder":
-      return (
-        <div className="w-full h-full flex items-center justify-center p-4 rounded-2xl" onClick={()=>{
-            if (isEditing) return
-            router.push(`/artwork-preview?type=${element.foldType}`) 
-        }}>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white z-9999 text-xl font-semibold bold">
-              {element.foldType === "card" ? "名片夹" : "作品集"}
-            </div>
-           <Folder size={2} color={element.color || "#E3825D"} className="custom-folder relative" items={element.foldType === "card" ? cardsNode() : postsNode()}/>
-        </div>
-      )
+      case "folder":
+        return renderFolderCard("folder")
     }
   }
     
@@ -379,7 +433,7 @@ const ShapePreview = ({ shape }: { shape: BentoShape }) => {
   const renderShapeMenu = () => {
     return (
     <>
-    {(element.type === "image" || element.type === "text") && (
+    {(["image","text","folder","stack"] as BentoElement["type"][]).includes(element.type) && (
       <>
           <Button
               ref={buttonRef}
@@ -543,4 +597,3 @@ const ShapePreview = ({ shape }: { shape: BentoShape }) => {
     </div>
   )
 }
-

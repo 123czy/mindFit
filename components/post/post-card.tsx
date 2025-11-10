@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Eye, Heart } from "lucide-react"
 import { Card } from "@/components/ui/card"
@@ -5,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { FallbackImage } from "@/components/ui/fallback-image"
 import type { Post } from "@/lib/types"
+import { useCallback, useMemo } from "react"
+import { useTrack, useTrackExposure } from "@/lib/analytics/use-track"
 
 interface PostCardProps {
   post: Post
@@ -13,9 +17,51 @@ interface PostCardProps {
 export function PostCard({ post }: PostCardProps) {
   const hasPrice = post.products && post.products.length > 0 && !post.products[0].isFree
   const price = hasPrice ? post.products![0].price : null
+  const { track } = useTrack()
+
+  const items = useMemo(
+    () => [
+      {
+        item_type: "post",
+        item_value: post.id,
+        item_meta: {
+          price: price ?? 0,
+          tag: post.tags?.[0] ?? null,
+        },
+      },
+    ],
+    [post.id, post.tags, price]
+  )
+
+  const exposureFactory = useCallback(
+    () => ({
+      event_name: "exposure",
+      ap_name: "home_feed_post_card",
+      items,
+    }),
+    [items]
+  )
+
+  const exposureRef = useTrackExposure<HTMLAnchorElement>(
+    exposureFactory,
+    { threshold: 0.6 }
+  )
+
+  const handleClick = useCallback(() => {
+    track({
+      event_name: "click",
+      ap_name: "home_feed_post_card",
+      items,
+    })
+  }, [items, track])
 
   return (
-    <Link href={`/post/${post.id}`} className="block group">
+    <Link
+      href={`/post/${post.id}`}
+      className="block group"
+      onClick={handleClick}
+      ref={exposureRef}
+    >
       <Card className="py-2 gap-2 hover:shadow-apple-lg transition-apple hover-lift bg-background">
         <div className="relative aspect-[3/2] overflow-hidden mx-2 rounded-lg">
           <FallbackImage

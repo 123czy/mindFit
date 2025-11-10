@@ -7,6 +7,7 @@ import { useRequireAuth } from "@/lib/auth/use-require-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/auth/auth-context"
 import { Image as ImageIcon } from "lucide-react"
+import { useTrack } from "@/lib/analytics/use-track"
 
 interface CommentInputProps {
   postId: string
@@ -20,6 +21,7 @@ export function CommentInput({ postId, parentCommentId, onCancel }: CommentInput
   const [focused, setFocused] = useState(false)
   const { requireAuth } = useRequireAuth()
   const { user } = useAuth()
+  const { track } = useTrack()
 
   const handleSubmit = async () => {
     if (!content.trim()) return
@@ -27,6 +29,21 @@ export function CommentInput({ postId, parentCommentId, onCancel }: CommentInput
     requireAuth(
       async () => {
         setIsSubmitting(true)
+        track({
+          event_name: "submit",
+          ap_name: "post_comment_btn",
+          refer: "post_detail",
+          action_type: "comment_post",
+          items: [
+            {
+              item_type: "post",
+              item_value: postId,
+              item_meta: {
+                parent_comment_id: parentCommentId,
+              },
+            },
+          ],
+        })
         // Mock submission
         setTimeout(() => {
           setContent("")

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import React, { useEffect } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { WechatQrLogin } from "./wechat-qr-login"
 // import { GoogleLogin } from "./google-login"
 // import { EmailCodeLogin } from "./email-code-login" // 暂时隐藏，保留代码
@@ -25,6 +25,7 @@ export function LoginDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
+      <DialogTitle className="sr-only">登录</DialogTitle>
       <DialogContent className="max-w-5xl p-0 gap-0 overflow-hidden rounded-3xl shadow-2xl border-0" showCloseButton={true}>
         <div className="grid grid-cols-1 md:grid-cols-2">
           
@@ -68,7 +69,20 @@ export function LoginDialog() {
               </div>
 
               {/* Google登录 */}
-              <GoogleLoginButton className="w-full" onSuccess={() => {}} />
+              <GoogleLoginButton 
+                className="my-custom-class"
+                customStyle={{
+                   width: '100%',
+                    height: '56px',
+                   borderRadius: '12px',
+                }}
+                onSuccess={() => {
+                  // 登录成功后的处理由 useEffect 监听 isAuthenticated 状态变化完成
+                  // 这里可以添加额外的成功处理逻辑，如显示成功消息等
+                }}
+                buttonTheme="outline"
+                buttonSize="large"
+              />
 
 
               <p className="text-sm text-muted-foreground">隐私条款，登录即代表同意<Link href="/terms" className="text-primary hover:underline ml-1">《用户协议》</Link>和<Link href="/privacy" className="text-primary hover:underline ml-1">《隐私政策》</Link></p>

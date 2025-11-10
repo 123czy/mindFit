@@ -4,8 +4,45 @@
  * 根据 doc.json，basePath 为 /api/v1
  */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+import { ENV_CONFIG } from "@/lib/constants";
+
+// 优先使用环境变量，其次使用 ENV_CONFIG 中的配置
+const getApiBaseUrl = (): string => {
+  // 1. 优先使用环境变量
+  // if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+  //   return process.env.NEXT_PUBLIC_API_BASE_URL;
+  // }
+
+  // 2. 客户端：使用代理路由（解决跨域问题）
+  if (typeof window !== "undefined") {
+    // 浏览器环境，使用 Next.js 代理路由
+    return "/api/proxy";
+  }
+
+  // 3. 服务端：直接请求后端（SSR 时不需要代理）
+  if (ENV_CONFIG.API_BASE_URL) {
+    return ENV_CONFIG.API_BASE_URL;
+  }
+
+  // 4. 根据环境选择默认地址
+  if (ENV_CONFIG.IS_DEV) {
+    return `${ENV_CONFIG.DEV_API_URL}/api/v1`;
+  }
+
+  if (ENV_CONFIG.IS_PROD) {
+    return `${ENV_CONFIG.PROD_API_URL}/api/v1`;
+  }
+
+  // 5. 最后的默认值
+  return "http://localhost:8080/api/v1";
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// 开发环境下打印 API 基础 URL（用于调试）
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  console.log("[API Client] API Base URL:", API_BASE_URL);
+}
 
 // 默认请求超时时间（毫秒）
 const DEFAULT_TIMEOUT = 8000; // 8秒
@@ -84,7 +121,8 @@ export async function refreshAccessToken(): Promise<string | null> {
 
     try {
       // 刷新 token 使用 cookie，不需要 Authorization header
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      const refreshUrl = buildUrl("/auth/refresh");
+      const response = await fetch(refreshUrl, {
         method: "POST",
         credentials: "include", // 重要：包含 cookie
         headers: {
@@ -138,22 +176,46 @@ interface RequestConfig extends RequestInit {
 
 /**
  * 构建完整的 URL
+ * 支持相对路径（如 /api/proxy）和绝对路径（如 http://example.com/api/v1）
  */
 function buildUrl(
   endpoint: string,
   params?: Record<string, string | number | boolean | undefined>
 ): string {
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  // 如果 API_BASE_URL 是相对路径（以 / 开头），直接拼接
+  if (API_BASE_URL.startsWith("/")) {
+    // 相对路径：直接拼接
+    let url = `${API_BASE_URL}${endpoint}`;
 
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value));
+    // 添加查询参数
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
       }
-    });
-  }
+    }
 
-  return url.toString();
+    return url;
+  } else {
+    // 绝对路径：使用 URL 对象
+    const url = new URL(`${API_BASE_URL}${endpoint}`);
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    return url.toString();
+  }
 }
 
 /**

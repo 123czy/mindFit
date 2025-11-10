@@ -1,12 +1,51 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
+import { useTrack } from "@/lib/analytics/use-track"
 
 const categories = ["全部", "我的关注", "文本生成", "图片生成", "视频生成", "工作流", "热点话题", "深度观点"]
 
 export function FilterTabs() {
   const [activeCategory, setActiveCategory] = useState("全部")
   const [activeSort, setActiveSort] = useState("热度")
+  const { track } = useTrack()
+
+  const handleCategoryClick = useCallback(
+    (category: string) => {
+      setActiveCategory(category)
+      track({
+        event_name: "click",
+        ap_name: "home_feed_filter_tab",
+        refer: "home",
+        items: [
+          {
+            item_type: "filter",
+            item_value: category,
+            item_meta: { sort: activeSort },
+          },
+        ],
+      })
+    },
+    [activeSort, track]
+  )
+
+  const handleSortChange = useCallback(
+    (sort: "热度" | "最新") => {
+      setActiveSort(sort)
+      track({
+        event_name: "toggle",
+        ap_name: "home_feed_sort_toggle",
+        refer: "home",
+        items: [
+          {
+            item_type: "sort",
+            item_value: sort,
+          },
+        ],
+      })
+    },
+    [track]
+  )
 
   
   return (
@@ -16,7 +55,7 @@ export function FilterTabs() {
           {categories.map((category,index) => (
             <button
               key={category}
-              onClick={() => setActiveCategory(category)}
+              onClick={() => handleCategoryClick(category)}
               className={`
                 cursor-pointer text-sm whitespace-nowrap transition-all duration-200 relative pb-0.5
                 ${
@@ -34,9 +73,9 @@ export function FilterTabs() {
             </button>
           ))}
           <div className="flex-1 flex justify-end items-center gap-1 text-sm text-muted-foreground">
-            <span className={`cursor-pointer hover:text-foreground ${activeSort === "热度" ? "text-foreground font-semibold" : ""}`} onClick={() => setActiveSort("热度")}>热度</span>
+            <span className={`cursor-pointer hover:text-foreground ${activeSort === "热度" ? "text-foreground font-semibold" : ""}`} onClick={() => handleSortChange("热度")}>热度</span>
             <span className="text-muted-foreground"> | </span>
-            <span className={`cursor-pointer hover:text-foreground ${activeSort === "最新" ? "text-foreground font-semibold" : ""}`} onClick={() => setActiveSort("最新")}>最新</span>
+            <span className={`cursor-pointer hover:text-foreground ${activeSort === "最新" ? "text-foreground font-semibold" : ""}`} onClick={() => handleSortChange("最新")}>最新</span>
           </div>
         </div>
       </div>

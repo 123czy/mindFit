@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth/auth-context"
 import { useLoginDialog } from "@/lib/auth/use-login-dialog"
 import { useRequireAuth } from "@/lib/auth/use-require-auth"
 import { useState } from "react"
+import { useTrack } from "@/lib/analytics/use-track"
 
 export function Navbar() {
   const { user, isAuthenticated, signOut } = useAuth()
@@ -24,8 +25,14 @@ export function Navbar() {
   const { requireAuth } = useRequireAuth()
   const [searchType, setSearchType] = useState<"posts" | "users" | "tags">("posts")
   const [searchQuery, setSearchQuery] = useState("")
+  const { track } = useTrack()
 
   const handleLogin = () => {
+    track({
+      event_name: "click",
+      ap_name: "navbar_login_btn",
+      items: [{ item_type: "cta", item_value: "login" }],
+    })
     openDialog()
   }
 
@@ -35,6 +42,11 @@ export function Navbar() {
   }
 
   const handleNotifications = () => {
+    track({
+      event_name: "click",
+      ap_name: "navbar_notifications_btn",
+      items: [{ item_type: "cta", item_value: "notifications" }],
+    })
     requireAuth(
       () => {
         window.location.href = "/notifications"
@@ -46,14 +58,27 @@ export function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
+    const query = searchQuery.trim()
     
     // 根据搜索类型跳转到不同的搜索页面
-    const params = new URLSearchParams({ q: searchQuery })
+    const params = new URLSearchParams({ q: query })
     const path = searchType === "posts" 
       ? `/search?${params}`
       : searchType === "users"
       ? `/search/users?${params}`
       : `/search/tags?${params}`
+
+    track({
+      event_name: "submit",
+      ap_name: "navbar_search_submit",
+      items: [
+        {
+          item_type: "search",
+          item_value: query,
+          item_meta: { search_type: searchType },
+        },
+      ],
+    })
     
     window.location.href = path
   }

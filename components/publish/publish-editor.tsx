@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,7 +15,6 @@ import { PreviewModal } from "@/components/publish/preview-modal"
 import { CoverSelector } from "@/components/publish/cover-selector"
 import { VariableForm } from "@/components/publish/variable-form"
 import { Eye, Save, Send } from "lucide-react"
-import Link from "next/link"
 import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 import { usePosts } from "@/lib/posts-context"
@@ -23,10 +22,17 @@ import { useCurrentUser } from "@/lib/hooks/use-current-user"
 import { createPost } from "@/lib/supabase/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createTextImage } from "@/lib/utils/text-to-image"
+import { useTrack } from "@/lib/analytics/use-track"
+import { CreateProductForm } from "@/components/product/create-product-form"
 
 enum PublishType {
   picture = "picture",
   document = "document"
+}
+
+enum ProductType {
+  product = "product",
+  post = "post"
 }
 
 type Cover = "cover1" | "cover2" | "cover3" | "cover4"
@@ -68,9 +74,15 @@ export function PublishEditor() {
   const [isPublishing, setIsPublishing] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [publishType, setPublishType] = useState<PublishType>(PublishType.picture)
+  const [productType, setProductType] = useState<ProductType>(ProductType.post)
   const [cover, setCover] = useState<Cover>("cover1")
   const [documentPreviewImage, setDocumentPreviewImage] = useState<string>("")
   const [variables, setVariables] = useState<Array<{id: string, type: string, value: string}>>([])
+  const { track } = useTrack()
+  const draftIdRef = useRef<string>(
+    typeof crypto !== "undefined" ? crypto.randomUUID() : `${Date.now()}`
+  )
+  const draftId = draftIdRef.current
   const handlePublish = async () => {
     if (!isAuthenticated || !user) {
       toast.error("请先登录")
@@ -90,6 +102,24 @@ export function PublishEditor() {
       return
     }
 
+
+    track({
+      event_name: "submit",
+      ap_name: "publish_submit_btn",
+      refer: "publish",
+      action_type: "create_post",
+      items: [
+        {
+          item_type: "post_draft",
+          item_value: draftId,
+          item_meta: {
+            has_images: images.length > 0,
+            has_products: selectedProducts.length > 0,
+            tags_count: tags.length,
+          },
+        },
+      ],
+    })
 
     setIsPublishing(true)
 
@@ -132,6 +162,22 @@ export function PublishEditor() {
         viewCount: 0,
       })
 
+      track({
+        event_name: "submit",
+        ap_name: "publish_submit_btn",
+        refer: "publish",
+        action_type: "create_post_success",
+        items: [
+          {
+            item_type: "post_draft",
+            item_value: draftId,
+            item_meta: {
+              post_id: newPost?.id,
+            },
+          },
+        ],
+      })
+
       toast.success("发布成功！")
       console.log("[Publishing] Post created successfully:", newPost)
 
@@ -141,6 +187,19 @@ export function PublishEditor() {
     } catch (error) {
       console.error("[Publishing] Error creating post:", error)
       toast.error("发布失败，请重试")
+      track({
+        event_name: "submit",
+        ap_name: "publish_submit_btn",
+        refer: "publish",
+        action_type: "create_post_failed",
+        items: [
+          {
+            item_type: "post_draft",
+            item_value: draftId,
+          },
+        ],
+        extra: { message: (error as Error)?.message },
+      })
     } finally {
       setIsPublishing(false)
     }
@@ -231,17 +290,16 @@ export function PublishEditor() {
   const canPublish = title.trim() && body.trim() && images.length > 0 && allVariablesFilled
 
   return (
-    <>
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-apple">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Select value={publishType} onValueChange={(value) => setPublishType(value as PublishType)}>
-              <SelectTrigger className="w-[200px]">
+            <Select value={productType} onValueChange={(value) => setProductType(value as ProductType)}>
+              <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="选择发布类型" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="picture">图文</SelectItem>
-                <SelectItem value="document">长文</SelectItem>
+                <SelectItem value="post">帖子</SelectItem>
+                <SelectItem value="product">商品</SelectItem>
               </SelectContent>
             </Select>
 
@@ -268,67 +326,67 @@ export function PublishEditor() {
                 className="cursor-pointer rounded-xl bg-primary hover:bg-primary/90 shadow-apple hover:shadow-apple-lg transition-apple active-press"
               >
                 <Send className="mr-2 h-4 w-4" />
-                {isPublishing ? "发布中..." : "发布"}
+                {isPublishing ? "创建中..." : "创建"}
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="space-y-6">
-            {/* Image Upload */}
-            {publishType === PublishType.picture && <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
-              <ImageUploader images={images} onChange={setImages} />
-            </div>}
-
-            {/* Title */}
-            <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
+        {productType === ProductType.post ? <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8 space-y-2 rounded-2xl bg-card border border-border/40 p-6 shadow-apple">
+            <Select value={publishType} onValueChange={(value) => setPublishType(value as PublishType)}>
+               <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="选择发布类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="picture">图文</SelectItem>
+                <SelectItem value="document">长文</SelectItem>
+              </SelectContent>
+            </Select>
+              
               <Input
                 placeholder="给你的作品起个标题吧"
                 value={title}
                 onChange={(e) => setTitle(e.target.value.slice(0, 50))}
                 maxLength={50}
-                className="text-lg font-medium border-0 px-0 focus-visible:ring-0 placeholder:text-muted-foreground/60"
+                className="mt-4 text-lg font-medium border border-border/40 px-2 focus-visible:ring-0 placeholder:text-muted-foreground/60"
               />
               <p className="text-xs text-muted-foreground text-right mt-2">{title.length} / 50</p>
-            </div>
+              
+              <div className="space-y-6">
+            {/* Image Upload */}
+            {publishType === PublishType.picture && <div className="">
+              <ImageUploader images={images} onChange={setImages} />
+            </div>}
 
             {/* Body */}
-            <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
+            <div className="">
               <Textarea
                 placeholder="分享你的创作灵感、使用技巧..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={10}
                 maxLength={1000}
-                className="min-h-[200px] border-0 px-0 focus-visible:ring-0 resize-none placeholder:text-muted-foreground/60"
+                className="min-h-[200px] border border-border/40 px-2 focus-visible:ring-0 resize-none placeholder:text-muted-foreground/60"
               />
               <p className="text-xs text-muted-foreground text-right mt-2">{body.length} / 1000</p>
               
-              {/* Variables Form */}
-              {/* {variables.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-border/40">
-                  <VariableForm 
-                    variables={variables}
-                    onChange={setVariables}
-                    initialBody={body}
-                  />
-                </div>
-              )} */}
             </div>
 
-            {publishType === PublishType.document && <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
+            {publishType === PublishType.document && <div className="">
               <h3 className="text-sm font-medium mb-4">选择封面效果</h3>
               <CoverSelector handleCoverSelect={handleCoverSelect} cover={cover}/>
             </div>}
 
             {/* Tags */}
-            <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
+             
               <h3 className="text-sm font-medium mb-4">话题标签</h3>
               <TagSelector tags={tags} onChange={setTags} />
-            </div>
-
+             
+           </div>
             {/* Paid Content */}
+           
+          </div>
             <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-apple">
               <div className="flex items-center gap-3 mb-4">
                 <label htmlFor="paid-content" className="text-sm font-medium cursor-pointer select-none">
@@ -338,9 +396,12 @@ export function PublishEditor() {
 
               <ProductManager selectedProducts={selectedProducts} onChange={setSelectedProducts} />
             </div>
-          </div>
         </div>
-      </div>
+      : <div className="container mx-auto px-4 py-8 max-w-4xl">
+        
+         <CreateProductForm />
+      
+      </div>}
 
       {/* Preview Modal */}
       <PreviewModal
@@ -357,6 +418,6 @@ export function PublishEditor() {
           bio: user.bio || undefined
         } : undefined}
       />
-    </>
+    </div>
   )
 }

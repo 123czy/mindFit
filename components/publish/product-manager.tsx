@@ -1,15 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Edit, Trash2 } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductSelectionModal } from "@/components/publish/product-selection-modal"
 import type { Product } from "@/lib/types"
 import Image from "next/image"
 import { toast } from "sonner"
-import { useListWork } from "@/lib/contracts/hooks/use-marketplace-v2"
-import { parseEther } from "viem"
-import { CreateProductForm } from "@/components/product/create-product-form"
+import { useRouter } from "next/navigation"
 
 interface ProductManagerProps {
   selectedProducts: Product[]
@@ -18,9 +16,7 @@ interface ProductManagerProps {
 
 export function ProductManager({ selectedProducts, onChange }: ProductManagerProps) {
   const [showSelectionModal, setShowSelectionModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const { listWork } = useListWork()
+  const router = useRouter()
   const handleRemoveProduct = (productId: string) => {
     if (confirm("确定要移除这个商品吗？")) {
       onChange(selectedProducts.filter((p) => p.id !== productId))
@@ -28,26 +24,13 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
     }
   }
 
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product)
-    setShowEditModal(true)
+  const handleCreateProduct = () => {
+    router.push("/product/create")
   }
 
   const handleProductsSelected = (products: Product[]) => {
     onChange([...selectedProducts, ...products])
     setShowSelectionModal(false)
-  }
-
-  const handleProductUpdated = async(updatedProduct: Product) => {
-    onChange(selectedProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
-    try{
-      await listWork(updatedProduct.id, parseEther(updatedProduct.price.toString()))
-    } catch (error) {
-      toast.error("商品上链失败")
-      return
-    }
-    setShowEditModal(false)
-    setEditingProduct(null)
   }
 
   return (
@@ -67,10 +50,7 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
             type="button"
             variant="outline"
             className="flex-1 rounded-xl border-dashed hover:bg-accent/60 transition-apple bg-transparent"
-            onClick={() => {
-              setEditingProduct(null)
-              setShowEditModal(true)
-            }}
+            onClick={handleCreateProduct}
           >
             <Plus className="mr-2 h-4 w-4" />
             创建新商品
@@ -111,16 +91,6 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="rounded-lg bg-transparent"
-                    onClick={() => handleEditProduct(product)}
-                  >
-                    <Edit className="h-3.5 w-3.5 mr-1" />
-                    修改
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
                     className="rounded-lg text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10 bg-transparent"
                     onClick={() => handleRemoveProduct(product.id)}
                   >
@@ -141,17 +111,6 @@ export function ProductManager({ selectedProducts, onChange }: ProductManagerPro
         onSelect={handleProductsSelected}
         excludeIds={selectedProducts.map((p) => p.id)}
       />
-
-       <CreateProductForm
-        open={showEditModal}
-        onOpenChange={() => {
-          setShowEditModal(false)
-          setEditingProduct(null)
-        }}
-        postId={editingProduct?.id}
-        onSuccess={handleProductUpdated}
-      />
-
     </>
   )
 }

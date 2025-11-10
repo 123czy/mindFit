@@ -6,7 +6,7 @@ import { shapeConfig } from "@/lib/types/bento"
 import { BentoElementComponent } from "./bento/bento-element"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Lock, Sparkles, X } from "lucide-react"
+import { Lock, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth/auth-context"
 import { BentoImages } from "./bento/bento-images"
@@ -26,9 +26,10 @@ interface Item {
     img: string;
     url: string;
     height: number;
+    hidden?: boolean;
 }
   
-const items: Item[] = [
+const initialGalleryItems: Item[] = [
       {
         id: "1",
         img: "https://picsum.photos/id/1015/600/900?grayscale",
@@ -83,6 +84,7 @@ export function MuuriDemo({
   const { isAuthenticated } = useAuth()
   const [isProcessing, setIsProcessing] = useState(false)
   const [isShowImages, setIsShowImages] = useState(false)
+  const [galleryItems, setGalleryItems] = useState(initialGalleryItems)
   const gridRef = useRef<HTMLDivElement>(null)
   const muuriRef = useRef<any>(null)
 
@@ -198,6 +200,12 @@ export function MuuriDemo({
     )
   }
 
+  const handleElementUpdate = (id: string, updates: Partial<BentoElement>) => {
+    onElementsChange?.(
+      elements.map(el => el.id === id ? { ...el, ...updates } : el)
+    )
+  }
+
   const handleUnlock = async () => {
     if (!isAuthenticated) {
       toast.error("请先登录")
@@ -230,7 +238,22 @@ export function MuuriDemo({
   }
 
   const handleClickImages = () => {
-    setIsShowImages(!isShowImages)
+    if (!isEditing) return
+    setIsShowImages(true)
+  }
+
+  const handleHideGalleryImages = (ids: string[]) => {
+    if (ids.length === 0) return
+    setGalleryItems((prev) =>
+      prev.map((item) =>
+        ids.includes(item.id) ? { ...item, hidden: !item.hidden } : item
+      )
+    )
+  }
+
+  const handleDeleteGalleryImages = (ids: string[]) => {
+    if (ids.length === 0) return
+    setGalleryItems((prev) => prev.filter((item) => !ids.includes(item.id)))
   }
 
   return (
@@ -275,6 +298,7 @@ export function MuuriDemo({
                 onAddLink={(id, url) => handleAddLink(id, url)}
                 onColorChange={(id, color) => handleColorChange(id, color)}
                 onContentChange={(id, content) => handleContentChange(id, content)}
+                onElementUpdate={handleElementUpdate}
                 onClickImages={() => handleClickImages()}
               />
             </div>
@@ -292,10 +316,15 @@ export function MuuriDemo({
         )}
 
         {isShowImages && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background backdrop-blur-sm rounded-2xl">
-            <p className="absolute top-0 right-0 z-9999"><Button variant="outline" className="rounded-full" size="icon" onClick={() => setIsShowImages(false)}><X className="w-4 h-4 cursor-pointer" /></Button></p>
-            <div className="w-full h-full pt-12 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent">
-                <BentoImages items={items}  />
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background backdrop-blur-sm rounded-2xl p-6">
+            <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-transparent rounded-2xl bg-background/80 p-4">
+              <BentoImages
+                items={galleryItems}
+                isEditing={isEditing}
+                onClose={() => setIsShowImages(false)}
+                onHideSelected={handleHideGalleryImages}
+                onDeleteSelected={handleDeleteGalleryImages}
+              />
             </div>
           </div>
         )}

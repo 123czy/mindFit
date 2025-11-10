@@ -10,6 +10,53 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          id: string
+          event_name: string
+          ap_name: string
+          refer: string
+          action_type: string | null
+          user_id: string
+          device_id: string
+          platform: string
+          version: string
+          time: string
+          items: Json
+          extra: Json | null
+          inserted_at: string
+        }
+        Insert: {
+          id?: string
+          event_name: string
+          ap_name: string
+          refer: string
+          action_type?: string | null
+          user_id: string
+          device_id: string
+          platform: string
+          version: string
+          time: string
+          items?: Json
+          extra?: Json | null
+          inserted_at?: string
+        }
+        Update: {
+          id?: string
+          event_name?: string
+          ap_name?: string
+          refer?: string
+          action_type?: string | null
+          user_id?: string
+          device_id?: string
+          platform?: string
+          version?: string
+          time?: string
+          items?: Json
+          extra?: Json | null
+          inserted_at?: string
+        }
+      }
       users: {
         Row: {
           id: string;

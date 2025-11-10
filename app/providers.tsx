@@ -6,9 +6,10 @@ import { WagmiProvider } from "wagmi"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { config } from "@/lib/web3-config"
 import { useState } from "react"
-import { PostsProvider } from "@/lib/posts-context"
 import { AuthProvider } from "@/lib/auth/auth-context"
 import { LoginDialog } from "@/components/auth/login-dialog"
+import { AnalyticsProvider } from "@/lib/analytics/analytics-provider"
+import { PostsProvider } from "@/lib/posts-context"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,10 +30,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <PostsProvider>
-            {children}
-            <LoginDialog />
-          </PostsProvider>
+          <AnalyticsProvider>
+            <PostsProvider>
+              {children}
+              <LoginDialog />
+            </PostsProvider>
+          </AnalyticsProvider>
         </AuthProvider>
       </QueryClientProvider>
     </WagmiProvider>

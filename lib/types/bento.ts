@@ -1,3 +1,16 @@
+export type PlatformSlug =
+  | "douyin"
+  | "wechat"
+  | "xiaohongshu"
+  | "weibo"
+  | "bilibili"
+  | "zhihu"
+  | "github"
+  | "twitter"
+  | "instagram"
+  | "youtube"
+  | "link";
+
 export type BentoShape =
   | "square-1x1" // 1x1 正方形
   | "square-2x2" // 2x2 正方形
@@ -35,7 +48,7 @@ export interface LinkBentoElement extends BaseBentoElement {
   type: "link";
   url: string;
   title: string;
-  icon?: string;
+  icon?: PlatformSlug | string;
 }
 
 export interface TextBentoElement extends BaseBentoElement {
@@ -54,11 +67,19 @@ export interface FolderBentoElement extends BaseBentoElement {
   type: "folder";
   title: string;
   foldType: "card" | "post";
+  subtitle?: string;
+  itemCount?: number;
+  isPublic?: boolean;
+  description?: string;
 }
 
 export interface StackBentoElement extends BaseBentoElement {
   type: "stack";
   title: string;
+  subtitle?: string;
+  itemCount?: number;
+  isPublic?: boolean;
+  description?: string;
 }
 
 export type BentoElement =

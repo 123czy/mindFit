@@ -12,6 +12,7 @@ import { formatDistanceToNow } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useLoginDialog } from "@/lib/auth/use-login-dialog"
+import { useTrack } from "@/lib/analytics/use-track"
 
 type NotificationType = "all" | "system" | "interaction"
 
@@ -104,6 +105,7 @@ export default function NotificationsPage() {
   const { openDialog } = useLoginDialog()
   const [activeTab, setActiveTab] = useState<NotificationType>("all")
   const [notifications] = useState<Notification[]>(mockNotifications)
+  const { track } = useTrack()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -142,6 +144,20 @@ export default function NotificationsPage() {
         className={`relative cursor-pointer transition-all hover:shadow-md ${
           notification.isRead ? "bg-white" : "bg-green-50 dark:bg-green-950/20"
         }`}
+        onClick={() =>
+          track({
+            event_name: "click",
+            ap_name: "notification_card",
+            refer: "notifications",
+            items: [
+              {
+                item_type: "notification",
+                item_value: notification.id,
+                item_meta: { type: notification.type },
+              },
+            ],
+          })
+        }
       >
         {!notification.isRead && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-red-500" />
@@ -181,6 +197,23 @@ export default function NotificationsPage() {
         className={`relative cursor-pointer transition-all hover:shadow-md ${
           notification.isRead ? "bg-white" : "bg-green-50 dark:bg-green-950/20"
         }`}
+        onClick={() =>
+          track({
+            event_name: "click",
+            ap_name: "notification_card",
+            refer: "notifications",
+            items: [
+              {
+                item_type: "notification",
+                item_value: notification.id,
+                item_meta: {
+                  type: notification.type,
+                  event_type: notification.eventType,
+                },
+              },
+            ],
+          })
+        }
       >
         {!notification.isRead && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-red-500" />
@@ -227,7 +260,24 @@ export default function NotificationsPage() {
           </button>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NotificationType)}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            const tab = value as NotificationType
+            setActiveTab(tab)
+            track({
+              event_name: "click",
+              ap_name: "notification_tab",
+              refer: "notifications",
+              items: [
+                {
+                  item_type: "notification_tab",
+                  item_value: tab,
+                },
+              ],
+            })
+          }}
+        >
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="all">全部消息</TabsTrigger>
             <TabsTrigger value="system">系统通知</TabsTrigger>

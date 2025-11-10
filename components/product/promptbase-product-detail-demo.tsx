@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
+import { useTrack } from "@/lib/analytics/use-track"
 
 // Mock 数据
 const mockProduct = {
@@ -79,6 +80,7 @@ export function PromptbaseProductDetailDemo() {
   const [variableValues, setVariableValues] = useState<Record<string, string>>({})
   const [imageViewerOpen, setImageViewerOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const { track } = useTrack()
 
   // 根据 viewMode 设置商品价格和状态
   const product = {
@@ -209,13 +211,27 @@ export function PromptbaseProductDetailDemo() {
 
   // 复制提示词模板（如果填充了变量，复制填充后的内容）
   const handleCopyTemplate = async () => {
-    const textToCopy = Object.keys(variableValues).some(key => variableValues[key].trim())
-      ? filledPrompt
-      : product.description
+    const hasFilledValues = Object.keys(variableValues).some(key => variableValues[key].trim())
+    const textToCopy = hasFilledValues ? filledPrompt : product.description
     const success = await copyToClipboard(textToCopy)
     if (success) {
       setCopiedTemplate(true)
       toast.success("已复制到剪贴板")
+      track({
+        event_name: "copy",
+        ap_name: "product_prompt_copy",
+        refer: "product_detail",
+        items: [
+          {
+            item_type: "product",
+            item_value: product.id,
+            item_meta: {
+              view_mode: viewMode,
+              variant: hasFilledValues ? "filled_template" : "base_template",
+            },
+          },
+        ],
+      })
       setTimeout(() => setCopiedTemplate(false), 2000)
     } else {
       toast.error("复制失败")
@@ -228,6 +244,22 @@ export function PromptbaseProductDetailDemo() {
     if (success) {
       setCopiedIndex(index)
       toast.success("已复制到剪贴板")
+      track({
+        event_name: "copy",
+        ap_name: "product_prompt_copy",
+        refer: "product_detail",
+        items: [
+          {
+            item_type: "product",
+            item_value: product.id,
+            item_meta: {
+              view_mode: viewMode,
+              variant: "example_prompt",
+              example_index: index,
+            },
+          },
+        ],
+      })
       setTimeout(() => setCopiedIndex(null), 2000)
     } else {
       toast.error("复制失败")
@@ -245,10 +277,25 @@ export function PromptbaseProductDetailDemo() {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* 切换按钮 */}
         <div className="mb-6 flex justify-end">
-          <Tabs value={viewMode} onValueChange={(v) => {
-            setViewMode(v as "free" | "paid")
-            setHasPurchased(false) // 切换模式时重置购买状态
-          }}>
+          <Tabs
+            value={viewMode}
+            onValueChange={(v) => {
+              const nextMode = v as "free" | "paid"
+              setViewMode(nextMode)
+              setHasPurchased(false) // 切换模式时重置购买状态
+              track({
+                event_name: "click",
+                ap_name: "product_view_mode_tab",
+                refer: "product_detail",
+                items: [
+                  {
+                    item_type: "view_mode",
+                    item_value: nextMode,
+                  },
+                ],
+              })
+            }}
+          >
             <TabsList>
               <TabsTrigger value="free">免费商品</TabsTrigger>
               <TabsTrigger value="paid">付费商品</TabsTrigger>
@@ -265,9 +312,23 @@ export function PromptbaseProductDetailDemo() {
                 <div className="space-y-6">
                   {/* 顶部按钮区域 */}
                   <div className="flex items-center gap-2">
-                    <Button 
+                    <Button
                       className="bg-primary hover:bg-primary/90 text-white"
-                      onClick={() => setShowGenerator(!showGenerator)}
+                      onClick={() => {
+                        const next = !showGenerator
+                        setShowGenerator(next)
+                        track({
+                          event_name: "toggle",
+                          ap_name: "product_generator_toggle",
+                          refer: "product_detail",
+                          items: [
+                            {
+                              item_type: "generator",
+                              item_value: String(next),
+                            },
+                          ],
+                        })
+                      }}
                     >
                       {showGenerator ? "Close generator" : "Generate images"}
                     </Button>
@@ -628,4 +689,3 @@ export function PromptbaseProductDetailDemo() {
     </div>
   )
 }
-

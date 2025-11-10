@@ -17,6 +17,7 @@ import { BentoToolbar } from "./bento-toolbar"
 import { Edit, Check } from "lucide-react"
 import { BentoImages } from "@/components/bento/bento-images"
 import { cn } from "@/lib/utils"
+import { useTrack } from "@/lib/analytics/use-track"
 
 interface BentoProfilePageProps {
   user: User
@@ -68,7 +69,7 @@ const mockBentoElements: BentoElement[] = [
     position: { x: 2, y: 0 },
     url: "https://github.com",
     title: "GitHub",
-    icon: "🔗",
+    icon: "github",
   },
   {
     id: "33",
@@ -85,7 +86,7 @@ const mockBentoElements: BentoElement[] = [
     position: { x: 1, y: 2 },
     url: "https://twitter.com",
     title: "Twitter",
-    icon: "🐦",
+    icon: "twitter",
   },
   {
     id: "55",
@@ -135,6 +136,7 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
     location: "",
     pronoun: "",
   })
+  const { track } = useTrack()
 
   // 查找空闲位置的函数
   const findEmptyPosition = (shape: BentoShape, elements: BentoElement[]): { x: number; y: number } => {
@@ -189,6 +191,20 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
     } as BentoElement
 
     setElements((prevElements) => [...prevElements, element])
+    track({
+      event_name: "click",
+      ap_name: "profile_add_block",
+      refer: "profile",
+      items: [
+        {
+          item_type: "bento_block",
+          item_value: newElement.type,
+          item_meta: {
+            shape: newElement.shape,
+          },
+        },
+      ],
+    })
   }
 
   const handleElementsChange = (newElements: BentoElement[]) => {
@@ -198,6 +214,20 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
   const handleToggleEdit = () => {
     if (!isOwner) return
     setIsEditing(!isEditing)
+    track({
+      event_name: "toggle",
+      ap_name: "profile_edit_toggle",
+      refer: "profile",
+      items: [
+        {
+          item_type: "profile",
+          item_value: user.id,
+          item_meta: {
+            is_editing: !isEditing,
+          },
+        },
+      ],
+    })
   }
 
   // 点击页面其他区域时，保存并退出当前字段编辑态

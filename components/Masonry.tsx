@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { cn } from "@/lib/utils";
 
 const useMedia = (queries: string[], values: number[], defaultValue: number): number => {
   const get = () => values[queries.findIndex(q => matchMedia(q).matches)] ?? defaultValue;
@@ -50,6 +51,7 @@ interface Item {
   img: string;
   url: string;
   height: number;
+  hidden?: boolean;
 }
 
 interface GridItem extends Item {
@@ -69,6 +71,9 @@ interface MasonryProps {
   hoverScale?: number;
   blurToFocus?: boolean;
   colorShiftOnHover?: boolean;
+  selectable?: boolean;
+  selectedIds?: string[];
+  onItemClick?: (item: Item) => void;
 }
 
 const Masonry: React.FC<MasonryProps> = ({
@@ -80,7 +85,10 @@ const Masonry: React.FC<MasonryProps> = ({
   scaleOnHover = true,
   hoverScale = 0.95,
   blurToFocus = true,
-  colorShiftOnHover = false
+  colorShiftOnHover = false,
+  selectable = false,
+  selectedIds = [],
+  onItemClick,
 }) => {
   const columns = useMedia(
     ['(min-width:1500px)', '(min-width:1000px)', '(min-width:600px)', '(min-width:400px)'],
@@ -215,26 +223,59 @@ const Masonry: React.FC<MasonryProps> = ({
 
   return (
     <div ref={containerRef} className="relative w-full h-full">
-      {grid.map(item => (
-        <div
-          key={item.id}
-          data-key={item.id}
-          className="absolute box-content"
-          style={{ willChange: 'transform, width, height, opacity' }}
-          onClick={() => window.open(item.url, '_blank', 'noopener')}
-          onMouseEnter={e => handleMouseEnter(item.id, e.currentTarget)}
-          onMouseLeave={e => handleMouseLeave(item.id, e.currentTarget)}
-        >
+      {grid.map(item => {
+        const isSelected = selectable && selectedIds.includes(item.id)
+        return (
           <div
-            className="relative w-full h-full bg-cover bg-center rounded-[10px] shadow-[0px_10px_50px_-10px_rgba(0,0,0,0.2)] uppercase text-[10px] leading-[10px]"
-            style={{ backgroundImage: `url(${item.img})` }}
-          >
-            {colorShiftOnHover && (
-              <div className="color-overlay absolute inset-0 rounded-[10px] bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 pointer-events-none" />
+            key={item.id}
+            data-key={item.id}
+            className={cn(
+              "absolute box-content transition-transform",
+              selectable ? "cursor-pointer" : "cursor-zoom-in"
             )}
+            style={{ willChange: 'transform, width, height, opacity' }}
+            onClick={(e) => {
+              if (onItemClick) {
+                e.preventDefault()
+                onItemClick(item)
+              } else if (item.url) {
+                window.open(item.url, '_blank', 'noopener')
+              }
+            }}
+            onMouseEnter={e => handleMouseEnter(item.id, e.currentTarget)}
+            onMouseLeave={e => handleMouseLeave(item.id, e.currentTarget)}
+          >
+            <div
+              className={cn(
+                "relative w-full h-full bg-cover bg-center rounded-[18px] shadow-[0px_10px_40px_-12px_rgba(0,0,0,0.25)]",
+                isSelected && "ring-4 ring-primary/70"
+              )}
+              style={{ backgroundImage: `url(${item.img})` }}
+            >
+              {colorShiftOnHover && (
+                <div className="color-overlay absolute inset-0 rounded-[18px] bg-gradient-to-tr from-pink-500/50 to-sky-500/50 opacity-0 pointer-events-none" />
+              )}
+              {item.hidden && (
+                <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white">
+                  已隐藏
+                </span>
+              )}
+              {selectable && (
+                <span
+                  className={cn(
+                    "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold",
+                    isSelected
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white/90 text-foreground border-border"
+                  )}
+                >
+                  {isSelected ? "✓" : ""}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   );
 };

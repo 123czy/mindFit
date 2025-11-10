@@ -11,6 +11,7 @@ import { CONTRACT_ADDRESSES } from "@/lib/contracts/addresses";
 import { sepolia } from "wagmi/chains";
 import { parseUnits } from "viem";
 import { ShoppingCart } from "lucide-react";
+import { useTrack } from "@/lib/analytics/use-track";
 
 interface PurchaseProductButtonProps {
   productId: string;
@@ -37,6 +38,7 @@ export function PurchaseProductButton({
   const { user, isAuthenticated } = useCurrentUser();
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchaseId, setPurchaseId] = useState<string | null>(null);
+  const { track } = useTrack();
 
   const testTokenAddress = CONTRACT_ADDRESSES.TEST_TOKEN[sepolia.id] as `0x${string}`;
 
@@ -68,6 +70,22 @@ export function PurchaseProductButton({
     setIsPurchasing(true);
 
     try {
+      track({
+        event_name: "submit",
+        ap_name: "post_purchase_btn",
+        refer: "post_detail",
+        action_type: "purchase_submit",
+        items: [
+          {
+            item_type: "product",
+            item_value: productId,
+            item_meta: {
+              price,
+              currency,
+            },
+          },
+        ],
+      });
       // Step 1: Create purchase record in database
       console.log("[Purchase] Creating purchase record...");
       const { data: purchase, error: dbError } = await createPurchase({
@@ -103,6 +121,23 @@ export function PurchaseProductButton({
       console.error("[Purchase] Error:", error);
       toast.error("购买失败，请重试");
       setIsPurchasing(false);
+      track({
+        event_name: "submit",
+        ap_name: "post_purchase_btn",
+        refer: "post_detail",
+        action_type: "pay_failed",
+        items: [
+          {
+            item_type: "product",
+            item_value: productId,
+            item_meta: {
+              price,
+              currency,
+            },
+          },
+        ],
+        extra: { message: (error as Error)?.message },
+      });
     }
   };
 
@@ -115,6 +150,23 @@ export function PurchaseProductButton({
         
         toast.success(`成功购买 ${productName}！`);
         console.log("[Purchase] Purchase completed successfully");
+        track({
+          event_name: "submit",
+          ap_name: "post_purchase_btn",
+          refer: "post_detail",
+          action_type: "pay_success",
+          items: [
+            {
+              item_type: "product",
+              item_value: productId,
+              item_meta: {
+                price,
+                currency,
+                tx_hash: txHash,
+              },
+            },
+          ],
+        });
         
         setPurchaseId(null);
         setIsPurchasing(false);
@@ -123,6 +175,23 @@ export function PurchaseProductButton({
         console.error("[Purchase] Error completing purchase:", error);
         toast.error("购买记录更新失败");
         setIsPurchasing(false);
+        track({
+          event_name: "submit",
+          ap_name: "post_purchase_btn",
+          refer: "post_detail",
+          action_type: "pay_failed",
+          items: [
+            {
+              item_type: "product",
+              item_value: productId,
+              item_meta: {
+                price,
+                currency,
+              },
+            },
+          ],
+          extra: { message: (error as Error)?.message },
+        });
       }
     })();
   }
@@ -146,4 +215,3 @@ export function PurchaseProductButton({
     </Button>
   );
 }
-

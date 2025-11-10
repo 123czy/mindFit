@@ -1,19 +1,20 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Image, Link as LinkIcon, Type, Monitor, Smartphone, Heading, X } from "lucide-react"
+import { Image, Link as LinkIcon, Type, Monitor, Smartphone, Heading, X, FolderPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import type { BentoElement } from "@/lib/types/bento"
+import type { BentoElement, PlatformSlug } from "@/lib/types/bento"
 import { cn } from "@/lib/utils"
+import { PlatformIcon } from "./platform-icons"
 
 // 平台配置
 interface PlatformConfig {
   name: string
-  icon: string
+  slug: PlatformSlug
   patterns: RegExp[]
   color: string
 }
@@ -21,74 +22,74 @@ interface PlatformConfig {
 const PLATFORMS: PlatformConfig[] = [
   {
     name: "抖音",
-    icon: "🎵",
+    slug: "douyin",
     patterns: [/douyin\.com/, /tiktok\.com/],
     color: "#000000"
   },
   {
     name: "微信",
-    icon: "💬",
+    slug: "wechat",
     patterns: [/weixin\.qq\.com/, /wx\.qq\.com/, /mp\.weixin\.qq\.com/],
     color: "#07C160"
   },
   {
     name: "小红书",
-    icon: "📕",
+    slug: "xiaohongshu",
     patterns: [/xiaohongshu\.com/, /xhslink\.com/],
     color: "#FF2442"
   },
   {
     name: "微博",
-    icon: "🔴",
+    slug: "weibo",
     patterns: [/weibo\.com/, /t\.cn/],
     color: "#E6162D"
   },
   {
     name: "B站",
-    icon: "📺",
+    slug: "bilibili",
     patterns: [/bilibili\.com/, /b23\.tv/],
     color: "#00A1D6"
   },
   {
     name: "知乎",
-    icon: "💡",
+    slug: "zhihu",
     patterns: [/zhihu\.com/, /zhuanlan\.zhihu\.com/],
     color: "#0084FF"
   },
   {
     name: "GitHub",
-    icon: "💻",
+    slug: "github",
     patterns: [/github\.com/, /github\.io/],
     color: "#181717"
   },
   {
     name: "Twitter",
-    icon: "🐦",
+    slug: "twitter",
     patterns: [/twitter\.com/, /x\.com/],
     color: "#1DA1F2"
   },
   {
     name: "Instagram",
-    icon: "📷",
+    slug: "instagram",
     patterns: [/instagram\.com/],
     color: "#E4405F"
   },
   {
     name: "YouTube",
-    icon: "▶️",
+    slug: "youtube",
     patterns: [/youtube\.com/, /youtu\.be/],
     color: "#FF0000"
   }
 ]
 
 // 识别平台
-function detectPlatform(url: string): { icon: string; name: string; color: string } {
+function detectPlatform(url: string): { slug: PlatformSlug; name: string; color: string } {
   const lowerUrl = url.toLowerCase()
   
   for (const platform of PLATFORMS) {
     if (platform.patterns.some(pattern => pattern.test(lowerUrl))) {
       return {
-        icon: platform.icon,
+        slug: platform.slug,
         name: platform.name,
         color: platform.color
       }
@@ -97,7 +98,7 @@ function detectPlatform(url: string): { icon: string; name: string; color: strin
   
   // 默认链接图标
   return {
-    icon: "🔗",
+    slug: "link",
     name: "链接",
     color: "#6B7280"
   }
@@ -124,12 +125,11 @@ export function BentoToolbar({
   const [imageUrl, setImageUrl] = useState("")
   const [linkUrl, setLinkUrl] = useState("")
   const [linkTitle, setLinkTitle] = useState("")
-  const [linkIcon, setLinkIcon] = useState("")
   const [textContent, setTextContent] = useState("")
   const [sectionTitle, setSectionTitle] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const linkInputRef = useRef<HTMLInputElement>(null)
-  const [detectedPlatform, setDetectedPlatform] = useState<{ icon: string; name: string; color: string } | null>(null)
+  const [detectedPlatform, setDetectedPlatform] = useState<{ slug: PlatformSlug; name: string; color: string } | null>(null)
 
   // 监听链接输入，自动检测平台
   useEffect(() => {
@@ -157,7 +157,6 @@ export function BentoToolbar({
     setImageUrl("")
     setLinkUrl("")
     setLinkTitle("")
-    setLinkIcon("")
     setTextContent("")
     setSectionTitle("")
   }
@@ -218,7 +217,7 @@ export function BentoToolbar({
       shape: "rect-1x2",
       url: linkUrl,
       title: title,
-      icon: platform.icon,
+      icon: platform.slug,
       color: platform.color,
     } as Omit<BentoElement, "id" | "position">)
 
@@ -241,7 +240,7 @@ export function BentoToolbar({
             shape: "rect-1x2",
             url: text,
             title: platform.name,
-            icon: platform.icon,
+            icon: platform.slug,
             color: platform.color,
           } as Omit<BentoElement, "id" | "position">)
           resetForm()
@@ -266,6 +265,19 @@ export function BentoToolbar({
 
     resetForm()
     setDialogType(null)
+  }
+
+  const handleAddFolder = () => {
+    onAddElement({
+      type: "folder",
+      shape: "rect-2x3",
+      title: "新建文件夹",
+      subtitle: "0 items",
+      itemCount: 0,
+      isPublic: true,
+      foldType: "card",
+      color: "#2563EB",
+    } as Omit<BentoElement, "id" | "position">)
   }
 
   const handleAddSection = () => {
@@ -339,6 +351,16 @@ export function BentoToolbar({
                 文本
               </Button>
 
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAddFolder}
+                className="rounded-xl"
+              >
+                <FolderPlus className="h-4 w-4 mr-1" />
+                文件夹
+              </Button>
+
               {/* <Button
                 variant="ghost"
                 size="sm"
@@ -405,7 +427,12 @@ export function BentoToolbar({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 {detectedPlatform && (
-                  <span className="text-2xl">{detectedPlatform.icon}</span>
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-xl text-white"
+                    style={{ backgroundColor: detectedPlatform.color }}
+                  >
+                    <PlatformIcon slug={detectedPlatform.slug} className="h-4 w-4 text-white" />
+                  </span>
                 )}
                 <h3 className="text-sm font-semibold">
                   {detectedPlatform ? `添加${detectedPlatform.name}链接` : "添加链接"}
@@ -471,6 +498,13 @@ export function BentoToolbar({
                   placeholder="自定义标题（可选）"
                   value={linkTitle}
                   onChange={(e) => setLinkTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && linkUrl.trim() && linkTitle.trim()) {
+                      handleAddLink()
+                    } else if (e.key === "Escape") {
+                      setLinkTitle("")
+                    }
+                  }}
                   className="h-9 text-sm"
                 />
               </div>
@@ -530,4 +564,3 @@ export function BentoToolbar({
     </>
   )
 }
-
