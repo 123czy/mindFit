@@ -1,0 +1,79 @@
+# docker-compose.local.yml
+# 位置：/Users/chenziyang/Documents/AI/new_mindFit/docker-compose.local.yml
+
+services:
+  # Go 后端服务
+  backend:
+    image: backend:latest  # 使用从服务器导入的镜像
+    env_file:
+      - .env.local.local   # ← 使用同一个环境变量文件
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST_DOCKER:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      DATABASE_NAME: ${DATABASE_NAME:-kudos_pub_dev}
+      DATABASE_SSLMODE: ${DATABASE_SSLMODE:-disable}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16
+    env_file:
+      - .env.local.local   # ← 使用同一个环境变量文件
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-kudos_pub_dev}
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Next.js 前端服务
+  frontend:
+    build:
+      context: .              # ← 当前目录（项目根目录）
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+    env_file:
+      - .env.local.local     # ← 使用同一个环境变量文件
+    environment:
+      # 前端通过 Docker 网络访问后端（使用服务名）
+      NEXT_PUBLIC_API_BASE_URL: http://backend:8080/api/v1
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      - postgres
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data_local:

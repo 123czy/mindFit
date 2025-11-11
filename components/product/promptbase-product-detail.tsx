@@ -7,10 +7,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Copy, Check, Lock } from "lucide-react"
 import { toast } from "sonner"
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard"
-import { hasUserPurchasedProduct } from "@/lib/supabase/api/purchases"
 import { useCurrentUser } from "@/lib/hooks/use-current-user"
 import type { Product } from "@/lib/types"
 import { ProductPurchase } from "../contract/product-purchase"
+import { apiGet } from "@/lib/utils/api-client"
 
 interface PromptbaseProductDetailProps {
   product: Product & {
@@ -50,11 +50,18 @@ export function PromptbaseProductDetail({ product }: PromptbaseProductDetailProp
         return
       }
 
-      const { hasPurchased: purchased } = await hasUserPurchasedProduct(user.id, product.id)
-      setHasPurchased(purchased)
+      try {
+        const response = await apiGet<{ data: { hasPurchased: boolean } }>(
+          `/api/purchases/status?buyerId=${user.id}&productId=${product.id}`
+        )
+        setHasPurchased(response.data?.hasPurchased ?? false)
+      } catch (error) {
+        console.error("Failed to load purchase status", error)
+        setHasPurchased(false)
+      }
     }
 
-    checkPurchase()
+    void checkPurchase()
   }, [user, product.id, isFree])
 
   // 是否可以查看完整内容
@@ -331,4 +338,3 @@ export function PromptbaseProductDetail({ product }: PromptbaseProductDetailProp
     </div>
   )
 }
-

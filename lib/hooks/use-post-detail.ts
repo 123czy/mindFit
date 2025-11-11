@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getPostById } from "../supabase/api/posts";
-import { getProductsByPostId } from "../supabase/api/products";
+import { apiGet } from "../utils/api-client";
 import { mapDbPostToPost, type Post } from "../types";
 import { CACHE_TIMES, QUERY_PRESETS } from "../react-query/config";
 
@@ -29,15 +28,16 @@ export function usePostDetail(options: UsePostDetailOptions) {
   } = useQuery<Post | null>({
     queryKey: ["post", postId],
     queryFn: async () => {
-      // 获取 post
-      const { data: dbPost, error: postError } = await getPostById(postId);
+      const response = await apiGet<{
+        data: { post: any; products: any[] };
+      }>(`/api/posts/${postId}`);
 
-      if (postError || !dbPost) {
-        throw postError || new Error("Post not found");
+      const dbPost = response.data?.post;
+      if (!dbPost) {
+        throw new Error("Post not found");
       }
 
-      // 获取 products
-      const { data: products } = await getProductsByPostId(postId);
+      const products = response.data?.products ?? [];
 
       // 转换数据格式
       return mapDbPostToPost(dbPost, products || []);

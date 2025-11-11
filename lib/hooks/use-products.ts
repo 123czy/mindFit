@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getProducts } from "../supabase/api";
+import { apiGet } from "../utils/api-client";
 import { mapDbProductToProduct, type Product } from "../types";
 
 interface UseProductsOptions {
@@ -25,19 +25,21 @@ export function useProducts(options?: UseProductsOptions) {
       setError(null);
 
       try {
-        const { data, error: fetchError } = await getProducts({
-          limit: options?.limit || 20,
-          userId: options?.userId,
-          category: options?.category,
-          isActive: options?.isActive,
-        });
-
-        if (fetchError) {
-          throw fetchError;
+        const query = new URLSearchParams();
+        if (options?.limit) query.set("limit", String(options.limit));
+        if (options?.userId) query.set("userId", options.userId);
+        if (options?.category) query.set("category", options.category);
+        if (options?.isActive !== undefined) {
+          query.set("isActive", String(options.isActive));
         }
 
-        if (data) {
-          const mappedProducts = data.map((dbProduct: any) =>
+        const queryString = query.toString();
+        const url = queryString ? `/api/products?${queryString}` : "/api/products";
+
+        const response = await apiGet<{ data: any[] }>(url);
+
+        if (response.data) {
+          const mappedProducts = response.data.map((dbProduct: any) =>
             mapDbProductToProduct(dbProduct)
           );
           setProducts(mappedProducts);
@@ -64,4 +66,3 @@ export function useProducts(options?: UseProductsOptions) {
     error,
   };
 }
-

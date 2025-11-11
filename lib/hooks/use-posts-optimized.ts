@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getPostsWithProducts } from "../supabase/api/posts";
+import { apiGet } from "../utils/api-client";
 import { mapDbPostToPost, type Post } from "../types";
 import { CACHE_TIMES, QUERY_PRESETS } from "../react-query/config";
 
@@ -44,22 +44,20 @@ export function usePostsOptimized(options?: UsePostsOptions) {
     queryKey,
     queryFn: async () => {
       // 使用优化的批量查询
-      const { data, error: fetchError } = await getPostsWithProducts({
-        limit: options?.limit || 20,
-        userId: options?.userId,
-        tags: options?.tags,
-      });
+      const query = new URLSearchParams();
+      if (options?.limit) query.set("limit", String(options.limit));
+      if (options?.userId) query.set("userId", options.userId);
+      if (options?.tags?.length) query.set("tags", options.tags.join(","));
 
-      if (fetchError) {
-        throw fetchError;
-      }
+      const queryString = query.toString();
+      const url = queryString ? `/api/posts?${queryString}` : "/api/posts";
 
-      if (!data) {
-        return [];
-      }
+      const response = await apiGet<{ data: Array<any & { products?: any[] }> }>(url);
+
+      const data = response.data ?? [];
 
       // 转换数据格式
-      const mappedPosts: Post[] = data.map((dbPost: any) => {
+      const mappedPosts: Post[] = data.map((dbPost) => {
         const products = dbPost.products || [];
         return mapDbPostToPost(dbPost, products);
       });

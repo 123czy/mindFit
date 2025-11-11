@@ -12,13 +12,13 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 // import { BentoGrid } from "./bento-grid"
 // import { PackeryDemo } from "@/components/packery-demo"
-import { MuuriDemo } from "@/components/muuri-demo"
+import dynamic from 'next/dynamic';
 import { BentoToolbar } from "./bento-toolbar"
 import { Edit, Check } from "lucide-react"
 import { BentoImages } from "@/components/bento/bento-images"
 import { cn } from "@/lib/utils"
 import { useTrack } from "@/lib/analytics/use-track"
-
+const MuuriDemo = dynamic(() => import('@/components/muuri-demo').then(mod => mod.MuuriDemo), { ssr: false });
 interface BentoProfilePageProps {
   user: User
   isOwner: boolean
@@ -112,6 +112,8 @@ const mockBentoElements: BentoElement[] = [
     foldType: "post",
   }
 ]
+
+
 
 export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
   const [isEditing, setIsEditing] = useState(false)

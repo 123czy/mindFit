@@ -1,6 +1,6 @@
-# 炒词 (MindFit) - Web3 AIGC 创作者平台
+# 炒词 (MindFit) - AIGC 创作者平台
 
-一个基于 Web3 的 AIGC 内容创作和交易平台，整合区块链、Supabase 数据库和声誉系统。
+一个面向 AIGC 创作者的内容创作和交易平台，整合 Supabase 数据库和社区互动功能（原 Web3 模块已下线）。
 
 ## ✨ 特性
 
@@ -8,7 +8,7 @@
 - 🛍️ **商品交易** - 创建和购买数字商品（Prompt、模板、教程等）
 - 💰 **区块链支付** - 基于智能合约的代币交易
 - 🏆 **声誉系统** - EIP-4973/5114 标准的身份和徽章系统
-- 🔐 **Web3 登录** - MetaMask 钱包连接
+- 🔐 **多方式登录** - 支持邮箱/第三方账号
 - 💾 **数据持久化** - Supabase PostgreSQL 数据库
 
 ## 🚀 快速开始
@@ -27,9 +27,6 @@ pnpm install
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-
-# WalletConnect (可选)
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
 ```
 
 ### 3. 初始化数据库
@@ -144,9 +141,7 @@ pnpm tunnel:info
 
 - **前端**: Next.js 14, React 19, TypeScript
 - **UI**: Tailwind CSS, shadcn/ui
-- **Web3**: wagmi, viem, WalletConnect
 - **数据库**: Supabase (PostgreSQL)
-- **智能合约**: Solidity, Sepolia Testnet
 
 ## 📝 可用脚本
 

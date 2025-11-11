@@ -4,7 +4,7 @@
  */
 
 import { getServerSupabase } from "../server";
-import type { SpotlightPost } from "./spotlight";
+import type { SpotlightPost } from "@/lib/types/spotlight";
 
 /**
  * 服务器端获取 Spotlight 帖子列表

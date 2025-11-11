@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPosts, getProductsByPostId } from "../supabase/api";
-import { mapDbPostToPost, mapDbProductToProduct, type Post } from "../types";
+import { apiGet } from "../utils/api-client";
+import { mapDbPostToPost, type Post } from "../types";
 
 interface UsePostsOptions {
   limit?: number;
@@ -24,27 +24,21 @@ export function usePosts(options?: UsePostsOptions) {
       setError(null);
 
       try {
-        const { data, error: fetchError } = await getPosts({
-          limit: options?.limit || 20,
-          userId: options?.userId,
-          tags: options?.tags,
-        });
+        const query = new URLSearchParams();
+        if (options?.limit) query.set("limit", String(options.limit));
+        if (options?.userId) query.set("userId", options.userId);
+        if (options?.tags?.length) query.set("tags", options.tags.join(","));
 
-        if (fetchError) {
-          throw fetchError;
-        }
+        const queryString = query.toString();
+        const url = queryString ? `/api/posts?${queryString}` : "/api/posts";
+        const response = await apiGet<{ data: Array<any & { products?: any[] }> }>(url);
 
-        if (data) {
-          // 为每个帖子获取关联的商品
-          const postsWithProducts = await Promise.all(
-            data.map(async (dbPost: any) => {
-              const { data: products } = await getProductsByPostId(dbPost.id);
-              return mapDbPostToPost(dbPost, products || []);
-            })
-          );
+        const data = response.data ?? [];
+        const postsWithProducts = data.map((dbPost) =>
+          mapDbPostToPost(dbPost as any, dbPost.products || [])
+        );
 
-          setPosts(postsWithProducts);
-        }
+        setPosts(postsWithProducts);
       } catch (err) {
         console.error("Error loading posts:", err);
         setError(err);
@@ -62,4 +56,3 @@ export function usePosts(options?: UsePostsOptions) {
     error,
   };
 }
-

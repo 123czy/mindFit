@@ -1,0 +1,13 @@
+  .git
+  node_modules
+  .next
+  supabase
+  docs
+  scripts
+  *.log
+  *.md
+  .env*
+
+# 编辑器配置（不需要在容器中）
+.vscode/
+.idea/

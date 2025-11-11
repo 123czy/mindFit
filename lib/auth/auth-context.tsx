@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
-import { getUserById } from "@/lib/supabase/api/users"
 
 type User = Database["public"]["Tables"]["users"]["Row"]
 

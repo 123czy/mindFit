@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useSpotlightPosts } from "@/lib/hooks/use-spotlight-posts"
-import type { SpotlightPost } from "@/lib/supabase/api/spotlight"
+import type { SpotlightPost } from "@/lib/types/spotlight"
 
 
 const aiTools = [

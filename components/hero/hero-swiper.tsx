@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Eye, Heart, Sparkles } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSpotlightPosts } from '@/lib/hooks/use-spotlight-posts'
-import type { SpotlightPost } from '@/lib/supabase/api/spotlight'
+import type { SpotlightPost } from '@/lib/types/spotlight'
 
 interface Project {
   id: string
@@ -242,5 +242,4 @@ export function HeroSwiper() {
     </div>
   )
 }
-
 

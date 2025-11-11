@@ -4,33 +4,7 @@
  */
 
 import { supabase } from "../client";
-import type { Database } from "../types";
-
-type Post = Database["public"]["Tables"]["posts"]["Row"] & {
-  users: {
-    username: string | null;
-    avatar_url: string | null;
-    wallet_address: string;
-  };
-};
-
-export interface SpotlightPost {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  stats: {
-    views: number;
-    likes: number;
-  };
-  tags: string[];
-  badge: string | null;
-  detailUrl: string;
-}
+import type { SpotlightPost } from "@/lib/types/spotlight";
 
 /**
  * 获取 Spotlight 帖子列表

@@ -19,11 +19,11 @@ import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 import { usePosts } from "@/lib/posts-context"
 import { useCurrentUser } from "@/lib/hooks/use-current-user"
-import { createPost } from "@/lib/supabase/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createTextImage } from "@/lib/utils/text-to-image"
 import { useTrack } from "@/lib/analytics/use-track"
 import { CreateProductForm } from "@/components/product/create-product-form"
+import { apiPost } from "@/lib/utils/api-client"
 
 enum PublishType {
   picture = "picture",
@@ -132,21 +132,20 @@ export function PublishEditor() {
         paidPrice 
       })
 
-      const { data: newPost, error } = await createPost({
-        userId: user.id,
-        walletAddress: user.wallet_address,
-        title,
-        content: body,
-        images,
-        tags,
-        isPaid: false,
-        price: paidPrice,
-        paidContent: paidContent,
-      })
-
-      if (error) {
-        throw error
-      }
+      const { data: newPost } = await apiPost<{ data: any }>(
+        "/api/posts",
+        {
+          userId: user.id,
+          walletAddress: user.wallet_address,
+          title,
+          content: body,
+          images,
+          tags,
+          isPaid: false,
+          price: paidPrice,
+          paidContent: paidContent,
+        }
+      )
 
       // Also add to local context for immediate UI update
       addPost({

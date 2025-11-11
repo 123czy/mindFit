@@ -1,3 +1,5 @@
+import withBundleAnalyzer from "@next/bundle-analyzer";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -6,8 +8,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  output: "standalone",
   images: {
-    unoptimized: true,
+    unoptimized: false,
     remotePatterns: [
       {
         protocol: "https",
@@ -65,15 +68,11 @@ const nextConfig = {
       },
     ];
   },
-  // 可选：使用 rewrites 将请求重写到后端（替代代理路由）
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: "/api/backend/:path*",
-  //       destination: "http://106.52.76.120:8080/api/v1/:path*",
-  //     },
-  //   ];
-  // },
 };
 
-export default nextConfig;
+// 修复 withBundleAnalyzer 的调用方式
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
+export default bundleAnalyzer(nextConfig);

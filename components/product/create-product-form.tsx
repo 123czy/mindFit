@@ -17,10 +17,10 @@ import {
 import { ImageUploader } from "@/components/publish/image-uploader"
 import { toast } from "sonner"
 import { useCurrentUser } from "@/lib/hooks/use-current-user"
-import { createProduct, getProductById } from "@/lib/supabase/api"
 import type { Product } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { apiGet, apiPost } from "@/lib/utils/api-client"
 
 interface CreateProductFormProps {
   postId?: string
@@ -162,33 +162,32 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
         }
       })
 
-      const { data, error } = await createProduct({
-        userId: user.id,
-        walletAddress: user.wallet_address || "",
-        postId: postId || null,
-        name: formData.name,
-        description: formData.description,
-        price: formData.price === "Free" ? 0 : parseFloat(formData.price),
-        currency: formData.currency,
-        imageUrl:
-          (formData.exampleImages[0] ||
-            formData.imageUrl ||
-            undefined) as string | undefined,
-        fileUrl: formData.fileUrl || undefined,
-        category: formData.category || "text",
-        stock: formData.stock ? parseInt(formData.stock) : undefined,
-        chain_product_id: (Date.now() % 86) + 15,
-        work_id: null,
-        contentData: {
-          exampleImages: formData.exampleImages,
-          guidance: formData.guidance,
-          examplePrompts,
-        },
-      })
-
-      if (error) {
-        throw error
-      }
+      const { data } = await apiPost<{ data: Product | null }>(
+        "/api/products",
+        {
+          userId: user.id,
+          walletAddress: user.wallet_address || "",
+          postId: postId || null,
+          name: formData.name,
+          description: formData.description,
+          price: formData.price === "Free" ? 0 : parseFloat(formData.price),
+          currency: formData.currency,
+          imageUrl:
+            (formData.exampleImages[0] ||
+              formData.imageUrl ||
+              undefined) as string | undefined,
+          fileUrl: formData.fileUrl || undefined,
+          category: formData.category || "text",
+          stock: formData.stock ? parseInt(formData.stock) : undefined,
+          chain_product_id: (Date.now() % 86) + 15,
+          work_id: null,
+          contentData: {
+            exampleImages: formData.exampleImages,
+            guidance: formData.guidance,
+            examplePrompts,
+          },
+        }
+      )
 
       toast.success("商品创建成功！")
       resetForm()
@@ -220,9 +219,9 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
     const loadProduct = async () => {
       setIsLoadingProduct(true)
       try {
-        const { data, error } = await getProductById(editProductId)
-        if (error || !data) {
-          throw error
+        const { data } = await apiGet<{ data: any }>(`/api/products/${editProductId}`)
+        if (!data) {
+          throw new Error("Product not found")
         }
 
         setFormData({
