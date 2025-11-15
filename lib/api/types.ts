@@ -31,17 +31,17 @@ export interface AuthResponse {
 export type UserRole = "user" | "admin";
 
 export interface User {
-  id: string;
-  email: string;
-  emailVerified: boolean;
-  displayName: string;
-  avatarURL?: string;
-  bio?: string;
-  locale?: string;
-  role: UserRole;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt?: string;
+  avatar_url: "string";
+  bio: "string";
+  created_at: "string";
+  display_name: "string";
+  email: "string";
+  email_verified: true;
+  id: "string";
+  last_login_at: "string";
+  locale: "string";
+  role: "string";
+  updated_at: "string";
 }
 
 export interface UpdateMeRequest {
@@ -243,4 +243,45 @@ export interface TransactionView {
 
 export interface CreateTransactionRequest {
   salable_id: string;
+}
+
+// ==================== Bundles 相关 ====================
+
+export interface CreateBundlesRequest {
+  currency: string;
+  price_cents: number;
+  prompt_file_ids: string[];
+  tags: string[];
+  title: string;
+}
+
+export interface UpdateBundlesRequest {
+  currency: string;
+  price_cents: number;
+  prompt_file_ids: string[];
+  tags: string[];
+  title: string;
+}
+
+export type PatchBundlesRequest = Partial<
+  Omit<UpdateBundlesRequest, "prompt_file_ids">
+>;
+
+export interface BundlesView {
+  createdAt: string;
+  creatorID: string;
+  currency: string;
+  id: string;
+  isCreator: boolean;
+  isOwner: boolean;
+  priceCents: number;
+  promptFiles: {
+    id: string;
+    title: string;
+  }[];
+  salableID: string;
+  status: string;
+  tags: string[];
+  title: string;
+  updatedAt: string;
 }

@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { useRequireAuth } from "@/lib/auth/use-require-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/auth/auth-context"
 import { Image as ImageIcon } from "lucide-react"
 import { useTrack } from "@/lib/analytics/use-track"
+import { useLoginDialog } from "@/lib/hooks/useLoginDialog"
 
 interface CommentInputProps {
   postId: string
@@ -19,41 +19,37 @@ export function CommentInput({ postId, parentCommentId, onCancel }: CommentInput
   const [content, setContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [focused, setFocused] = useState(false)
-  const { requireAuth } = useRequireAuth()
+  const { ensureLogin } = useLoginDialog()
   const { user } = useAuth()
   const { track } = useTrack()
 
   const handleSubmit = async () => {
     if (!content.trim()) return
 
-    requireAuth(
-      async () => {
-        setIsSubmitting(true)
-        track({
-          event_name: "submit",
-          ap_name: "post_comment_btn",
-          refer: "post_detail",
-          action_type: "comment_post",
-          items: [
-            {
-              item_type: "post",
-              item_value: postId,
-              item_meta: {
-                parent_comment_id: parentCommentId,
-              },
+    ensureLogin(async () => {
+      setIsSubmitting(true)
+      track({
+        event_name: "submit",
+        ap_name: "post_comment_btn",
+        refer: "post_detail",
+        action_type: "comment_post",
+        items: [
+          {
+            item_type: "post",
+            item_value: postId,
+            item_meta: {
+              parent_comment_id: parentCommentId,
             },
-          ],
-        })
-        // Mock submission
-        setTimeout(() => {
-          setContent("")
-          setIsSubmitting(false)
-          onCancel?.()
-        }, 500)
-      },
-      "comment",
-      { postId, parentCommentId }
-    )
+          },
+        ],
+      })
+      // Mock submission
+      setTimeout(() => {
+        setContent("")
+        setIsSubmitting(false)
+        onCancel?.()
+      }, 500)
+    }, { actionType: "comment", params: { postId, parentCommentId } })
   }
 
   return (

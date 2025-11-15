@@ -74,29 +74,25 @@ class ApiClientError extends Error {
 }
 
 /**
- * 获取认证 token（从 localStorage）
- * 注意：refresh token 由后端通过 cookie 自动管理
+ * 获取认证 token
+ * 现在由服务器端 HttpOnly Cookie 管理，客户端不再持久化
  */
 function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  // 从 localStorage 获取 access token
-  return localStorage.getItem("auth_token");
+  return null;
 }
 
 /**
  * 设置认证 token
  */
-export function setAuthToken(token: string): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("auth_token", token);
+export function setAuthToken(_token: string): void {
+  // no-op: access tokens are stored in HttpOnly cookies server-side
 }
 
 /**
  * 清除认证 token
  */
 export function clearAuthToken(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem("auth_token");
+  // no-op: access tokens are stored in HttpOnly cookies server-side
 }
 
 /**

@@ -125,3 +125,5 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id_here
 - [Google Identity Services 文档](https://developers.google.com/identity/gsi/web)
 - [Google OAuth 2.0 配置指南](https://developers.google.com/identity/protocols/oauth2/web-server)
 - [项目登录系统文档](./LOGIN_SYSTEM_IMPLEMENTATION.md)
+
+

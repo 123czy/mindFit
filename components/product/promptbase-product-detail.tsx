@@ -50,15 +50,15 @@ export function PromptbaseProductDetail({ product }: PromptbaseProductDetailProp
         return
       }
 
-      try {
-        const response = await apiGet<{ data: { hasPurchased: boolean } }>(
-          `/api/purchases/status?buyerId=${user.id}&productId=${product.id}`
-        )
-        setHasPurchased(response.data?.hasPurchased ?? false)
-      } catch (error) {
-        console.error("Failed to load purchase status", error)
-        setHasPurchased(false)
-      }
+      // try {
+      //   const response = await apiGet<{ data: { hasPurchased: boolean } }>(
+      //     `/api/purchases/status?buyerId=${user.id}&productId=${product.id}`
+      //   )
+      //   setHasPurchased(response.data?.hasPurchased ?? false)
+      // } catch (error) {
+      //   console.error("Failed to load purchase status", error)
+      //   setHasPurchased(false)
+      // }
     }
 
     void checkPurchase()

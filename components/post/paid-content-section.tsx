@@ -9,11 +9,19 @@ interface PaidContentSectionProps {
 }
 
 export function PaidContentSection({ products }: PaidContentSectionProps) {
+  const mockProducts = [
+    {
+      id: "1",
+      title: "商品1",
+      description: "商品1描述",
+      price: 100
+    },
+  ]
   return (
     <Card className="gap-0">
       <CardHeader>展示当前的商品</CardHeader>
       <CardContent className="space-y-0">
-        {products.length > 0 && products.map((product) => (
+        {mockProducts.length > 0 && mockProducts.map((product) => (
           <ProductCardDetail key={product.id} product={product} />
         ))}
       </CardContent>

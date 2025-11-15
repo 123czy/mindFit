@@ -12,7 +12,9 @@ export function WechatQrLogin() {
 
   // 获取微信登录二维码
   const fetchQrCode = async () => {
-    setIsLoading(true)
+    // setIsLoading(true)
+    setQrCodeUrl("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=mock-wechat-login")
+    return
     try {
       // Mock: 实际应该调用后端API获取二维码
       const response = await fetch("/api/auth/wechat/qrcode", {

@@ -1,27 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import React, { useEffect } from "react"
+import React from "react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { WechatQrLogin } from "./wechat-qr-login"
-// import { GoogleLogin } from "./google-login"
-// import { EmailCodeLogin } from "./email-code-login" // 暂时隐藏，保留代码
-
+import type { GoogleUserResponse } from '@/types/google-auth';
 import GoogleLoginButton from "./google-login-button"
 import { useLoginDialog } from "@/lib/auth/use-login-dialog"
-import { useAuth } from "@/lib/auth/auth-context"
 
 export function LoginDialog() {
   const { isOpen, closeDialog, executePendingActions } = useLoginDialog()
-  const { isAuthenticated } = useAuth()
 
-  // 当登录成功时，执行待执行的操作并关闭弹窗
-  useEffect(() => {
-    if (isAuthenticated && isOpen) {
-      executePendingActions()
-      closeDialog()
-    }
-  }, [isAuthenticated, isOpen, executePendingActions, closeDialog])
+  const handleGoogleSuccess = (_userInfo: GoogleUserResponse["user"]) => {
+    executePendingActions()
+    closeDialog()
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
@@ -76,10 +69,7 @@ export function LoginDialog() {
                     height: '56px',
                    borderRadius: '12px',
                 }}
-                onSuccess={() => {
-                  // 登录成功后的处理由 useEffect 监听 isAuthenticated 状态变化完成
-                  // 这里可以添加额外的成功处理逻辑，如显示成功消息等
-                }}
+                onSuccess={handleGoogleSuccess}
                 buttonTheme="outline"
                 buttonSize="large"
               />

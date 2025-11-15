@@ -87,10 +87,12 @@ export function MuuriDemo({
   const [galleryItems, setGalleryItems] = useState(initialGalleryItems)
   const gridRef = useRef<HTMLDivElement>(null)
   const muuriRef = useRef<any>(null)
+  const initializingRef = useRef(false)
 
   useEffect(() => {
     const initMuuri = async () => {
-      if (!gridRef.current || muuriRef.current) return
+      if (!gridRef.current || muuriRef.current || initializingRef.current) return
+      initializingRef.current = true
 
       try {
         const Muuri = (await import("muuri")).default
@@ -122,6 +124,8 @@ export function MuuriDemo({
         console.log("Muuri initialized successfully!")
       } catch (error) {
         console.error("Failed to initialize Muuri:", error)
+      } finally {
+        initializingRef.current = false
       }
     }
 
@@ -132,34 +136,24 @@ export function MuuriDemo({
         muuriRef.current.destroy()
         muuriRef.current = null
       }
+      initializingRef.current = false
     }
   }, [])
 
   useEffect(() => {
-    if (muuriRef.current && elements.length > 0) {
-      // 使用 setTimeout 确保 DOM 完全更新
-      const timer = setTimeout(() => {
-        try {
-          // 获取所有新的 items
-          const items = muuriRef.current.getItems()
-          const newItems = Array.from(gridRef.current?.querySelectorAll('.muuri-item') || [])
-            .filter((el) => !items.some((item: any) => item.getElement() === el))
-          
-          // 如果有新元素，添加到 Muuri
-          if (newItems.length > 0) {
-            muuriRef.current.add(newItems, { layout: false })
-          }
-          
-          // 刷新所有 items 并重新布局
-          muuriRef.current.refreshItems()
-          muuriRef.current.layout(true)
-        } catch (error) {
-          console.error('Muuri layout error:', error)
-        }
-      }, 100)
-      
-      return () => clearTimeout(timer)
-    }
+    if (!muuriRef.current || elements.length === 0) return
+
+    const timer = setTimeout(() => {
+      try {
+        muuriRef.current.synchronize()
+        muuriRef.current.refreshItems()
+        muuriRef.current.layout(true)
+      } catch (error) {
+        console.error("Muuri layout error:", error)
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [elements])
 
   const handleDelete = (id: string) => {
@@ -238,7 +232,7 @@ export function MuuriDemo({
   }
 
   const handleClickImages = () => {
-    if (!isEditing) return
+    // if (!isEditing) return
     setIsShowImages(true)
   }
 

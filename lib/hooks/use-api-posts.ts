@@ -17,8 +17,6 @@ import {
 } from "@/lib/api/posts";
 import { CACHE_TIMES, QUERY_PRESETS } from "@/lib/react-query/config";
 import type {
-  PostListResponse,
-  PostSingleResponse,
   CreatePostRequest,
   UpdatePostRequest,
   GetPostsParams,

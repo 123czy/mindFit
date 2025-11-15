@@ -11,6 +11,7 @@ import Image from "next/image"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
 import { useProducts } from "@/lib/hooks/use-products"
+import { useCreatedSalables } from "@/lib/hooks/use-api-salables"
 
 interface ProductSelectionModalProps {
   open: boolean
@@ -23,16 +24,17 @@ export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = []
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const { products, isLoading } = useProducts({ limit: 100 })
+  const { data: createdSalables, isLoading: isCreatedSalablesLoading } = useCreatedSalables({ })
 
   // Filter available products
   const availableProducts = useMemo(() => {
-    return products.filter((p) => !excludeIds.includes(p.id))
-  }, [products, excludeIds])
+    return createdSalables?.data?.filter((p) => !excludeIds.includes(p.id))
+  }, [createdSalables, excludeIds])
 
   // Filter by search
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return availableProducts
-    return availableProducts.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    return availableProducts?.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())) || []
   }, [availableProducts, searchQuery])
 
   const handleToggle = (productId: string) => {
@@ -40,10 +42,10 @@ export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = []
   }
 
   const handleToggleAll = () => {
-    if (selectedIds.length === filteredProducts.length) {
+    if (selectedIds.length === filteredProducts?.length) {
       setSelectedIds([])
     } else {
-      setSelectedIds(filteredProducts.map((p) => p.id))
+      setSelectedIds(filteredProducts?.map((p) => p.id))
     }
   }
 
@@ -52,7 +54,7 @@ export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = []
       toast.error("请至少选择一个商品")
       return
     }
-    const selected = products.filter((p) => selectedIds.includes(p.id))
+    const selected = createdSalables?.data?.filter((p) => selectedIds.includes(p.id))
     onSelect(selected)
     setSelectedIds([])
     setSearchQuery("")
@@ -88,7 +90,7 @@ export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = []
         <div className="px-6 py-3 border-b border-border/40 flex items-center justify-between bg-muted/30">
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+              checked={filteredProducts?.length > 0 && selectedIds.length === filteredProducts.length}
               onCheckedChange={handleToggleAll}
             />
             <span className="text-sm font-medium">全选</span>
@@ -99,13 +101,13 @@ export function ProductSelectionModal({ open, onClose, onSelect, excludeIds = []
         {/* Product list */}
         <ScrollArea className="h-[300px]">
           <div className="px-6 py-4 space-y-3">
-            {filteredProducts.length === 0 ? (
+            {filteredProducts?.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="mb-2">未找到相关商品</p>
                 <p className="text-sm">试试其他关键词</p>
               </div>
             ) : (
-              filteredProducts.map((product) => (
+              filteredProducts?.map((product) => (
                 <div
                   key={product.id}
                   className="flex items-center gap-4 p-3 rounded-lg border border-border/40 hover:bg-accent/60 transition-apple cursor-pointer"

@@ -4,7 +4,8 @@
 services:
   # Go 后端服务
   backend:
-    image: backend:latest  # 使用从服务器导入的镜像
+    image: hkccr.ccs.tencentyun.com/mindfit/kudos-pub-backend:latest
+    platform: linux/amd64  # 添加这一行
     env_file:
       - .env.local.local   # ← 使用同一个环境变量文件
     environment:
@@ -58,6 +59,7 @@ services:
       - .env.local.local     # ← 使用同一个环境变量文件
     environment:
       # 前端通过 Docker 网络访问后端（使用服务名）
+      GO_API_BASE_URL: ${GO_API_BASE_URL}
       NEXT_PUBLIC_API_BASE_URL: http://backend:8080/api/v1
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}

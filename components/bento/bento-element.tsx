@@ -157,9 +157,9 @@ export function BentoElementComponent({
         : `${folderCount} articles`
 
     const handleCardClick = () => {
-      if (isEditing) return
+    //   if (isEditing) return
       if (variant === "folder") {
-        router.push(`/artwork-preview?type=${element.foldType}`)
+        router.push(`/artwork-preview`)
       } else {
         onClickImages?.()
       }

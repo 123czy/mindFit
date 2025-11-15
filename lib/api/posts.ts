@@ -3,7 +3,9 @@
  * 对接 Go 后端的帖子接口
  */
 
-import { apiClient } from "./client";
+const DEFAULT_HEADERS = {
+  "Content-Type": "application/json",
+};
 import type {
   PostListResponse,
   PostSingleResponse,
@@ -30,27 +32,37 @@ export interface GetPostsParams {
 export async function getPosts(
   params?: GetPostsParams
 ): Promise<PostListResponse> {
-  // 转换 params 为 API 客户端需要的格式
-  const apiParams: Record<string, string | number | boolean | undefined> = {};
+  const searchParams = new URLSearchParams();
 
-  if (params?.limit !== undefined) apiParams.limit = params.limit;
-  if (params?.offset !== undefined) apiParams.offset = params.offset;
-  if (params?.tags) apiParams.tags = params.tags;
-  if (params?.author_id) apiParams.author_id = params.author_id;
-  if (params?.keyword) apiParams.keyword = params.keyword;
-  if (params?.locale) apiParams.locale = params.locale;
-
-  // tag_id 数组需要特殊处理（转换为逗号分隔的字符串）
+  if (params?.limit !== undefined)
+    searchParams.set("limit", String(params.limit));
+  if (params?.offset !== undefined)
+    searchParams.set("offset", String(params.offset));
+  if (params?.tags) searchParams.set("tags", params.tags);
+  if (params?.author_id) searchParams.set("author_id", params.author_id);
+  if (params?.keyword) searchParams.set("keyword", params.keyword);
+  if (params?.locale) searchParams.set("locale", params.locale);
   if (params?.tag_id && params.tag_id.length > 0) {
-    // 如果已经有 tags 参数，合并；否则使用 tag_id
-    if (params.tags) {
-      apiParams.tags = [params.tags, ...params.tag_id].join(",");
-    } else {
-      apiParams.tags = params.tag_id.join(",");
-    }
+    const existingTags = searchParams.get("tags");
+    const combined = existingTags
+      ? `${existingTags},${params.tag_id.join(",")}`
+      : params.tag_id.join(",");
+    searchParams.set("tags", combined);
   }
 
-  return apiClient.get<PostListResponse>("/posts", { params: apiParams });
+  const query = searchParams.toString();
+  const res = await fetch(query ? `/api/posts?${query}` : "/api/posts", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to load posts";
+    throw new Error(message);
+  }
+
+  return data as PostListResponse;
 }
 
 /**
@@ -61,9 +73,19 @@ export async function getPostById(
   id: string,
   locale?: string
 ): Promise<PostSingleResponse> {
-  return apiClient.get<PostSingleResponse>(`/posts/${id}`, {
-    params: locale ? { locale } : undefined,
+  const query = locale ? `?locale=${encodeURIComponent(locale)}` : "";
+  const res = await fetch(`/api/posts/${id}${query}`, {
+    method: "GET",
+    credentials: "include",
   });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to load post";
+    throw new Error(message);
+  }
+
+  return data as PostSingleResponse;
 }
 
 /**
@@ -73,7 +95,20 @@ export async function getPostById(
 export async function createPost(
   payload: CreatePostRequest
 ): Promise<PostSingleResponse> {
-  return apiClient.post<PostSingleResponse>("/posts", payload);
+  const res = await fetch("/api/posts", {
+    method: "POST",
+    credentials: "include",
+    headers: DEFAULT_HEADERS,
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to create post";
+    throw new Error(message);
+  }
+
+  return data as PostSingleResponse;
 }
 
 /**
@@ -84,7 +119,20 @@ export async function updatePost(
   id: string,
   payload: UpdatePostRequest
 ): Promise<PostSingleResponse> {
-  return apiClient.put<PostSingleResponse>(`/posts/${id}`, payload);
+  const res = await fetch(`/api/posts/${id}`, {
+    method: "PUT",
+    credentials: "include",
+    headers: DEFAULT_HEADERS,
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to update post";
+    throw new Error(message);
+  }
+
+  return data as PostSingleResponse;
 }
 
 /**
@@ -92,5 +140,16 @@ export async function updatePost(
  * POST /posts/{id}/publish
  */
 export async function publishPost(id: string): Promise<PostSingleResponse> {
-  return apiClient.post<PostSingleResponse>(`/posts/${id}/publish`);
+  const res = await fetch(`/api/posts/${id}/publish`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to publish post";
+    throw new Error(message);
+  }
+
+  return data as PostSingleResponse;
 }

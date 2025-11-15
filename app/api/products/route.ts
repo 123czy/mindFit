@@ -1,42 +1,37 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createProduct, getProducts } from "@/lib/supabase/api/products"
-
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const limit = Number(searchParams.get("limit") ?? "20")
-  const offset = Number(searchParams.get("offset") ?? "0")
-  const userId = searchParams.get("userId") || undefined
-  const category = searchParams.get("category") || undefined
-  const isActiveParam = searchParams.get("isActive")
-  const isActive =
-    isActiveParam === null ? undefined : isActiveParam === "true" || isActiveParam === "1"
-
-  const { data, error } = await getProducts({
-    limit: Number.isNaN(limit) ? undefined : limit,
-    offset: Number.isNaN(offset) ? undefined : offset,
-    userId,
-    category,
-    isActive,
-  })
-
-  if (error) {
-    const message = typeof error === "string" ? error : error?.message || "Failed to load products"
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
-
-  return NextResponse.json({ data })
-}
+import { NextRequest, NextResponse } from "next/server";
+import { getAccessTokenFromRequest } from "@/lib/server/auth-cookies";
+import {
+  forwardSetCookieHeaders,
+  parseBackendResponse,
+} from "@/lib/server/response-helpers";
+import { backendFetch } from "@/lib/server/backend-client";
 
 export async function POST(request: NextRequest) {
-  const payload = await request.json()
+  const accessToken = await getAccessTokenFromRequest();
+  const body = await request.text();
+  const cookieHeader = request.headers.get("cookie");
 
-  const { data, error } = await createProduct(payload)
+  const backendResponse = await backendFetch("/prompts", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(cookieHeader ? { cookie: cookieHeader } : {}),
+    },
+    body, // 直接传递 body，因为 request.text() 已经返回了 JSON 字符串
+  });
 
-  if (error) {
-    const message = typeof error === "string" ? error : error?.message || "Failed to create product"
-    return NextResponse.json({ error: message }, { status: 400 })
-  }
-
-  return NextResponse.json({ data })
+  const { data, isJson } = await parseBackendResponse(backendResponse);
+  const nextResponse = isJson
+    ? NextResponse.json(data, {
+        status: backendResponse.status,
+        statusText: backendResponse.statusText,
+      })
+    : new NextResponse(data, {
+        status: backendResponse.status,
+        statusText: backendResponse.statusText,
+      });
+  forwardSetCookieHeaders(backendResponse.headers, nextResponse);
+  return nextResponse;
 }
-

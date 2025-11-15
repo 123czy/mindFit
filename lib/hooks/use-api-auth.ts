@@ -16,10 +16,17 @@ export function useGoogleSignIn() {
 
   return useMutation({
     mutationFn: (payload: GoogleSignInRequest) => googleSignIn(payload),
-    onSuccess: (data: AuthResponse) => {
-      // 清除用户相关缓存，触发重新获取
-      queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+    onSuccess: async (data: AuthResponse) => {
+      // 先设置缓存数据，实现快速更新 UI
       queryClient.setQueryData(["user", "me"], data.user);
+
+      // 自动触发 useCurrentUser 重新获取，确保全局用户信息更新
+      // 这会触发所有使用 useCurrentUser 的组件自动更新
+      // refetchQueries 会自动使缓存失效并重新获取最新数据
+      await queryClient.refetchQueries({
+        queryKey: ["user", "me"],
+        type: "active", // 只重新获取当前活跃的查询
+      });
     },
   });
 }
@@ -57,11 +64,11 @@ export function useLogout() {
 /**
  * 获取当前用户信息
  */
-export function useCurrentUserQuery(enabled: boolean = true) {
+export function useCurrentUserInfo() {
   return useQuery({
     queryKey: ["user", "me"],
     queryFn: getCurrentUser,
-    enabled,
+    enabled: true,
     staleTime: CACHE_TIMES.USER.staleTime,
     gcTime: CACHE_TIMES.USER.gcTime,
     ...QUERY_PRESETS.detail,

@@ -8,6 +8,7 @@
     "dev:tunnel": "pnpm dev & sleep 2 && lt --port 3000 --print-requests",
     "tunnel": "./scripts/start-tunnel.sh",
     "tunnel:info": "./scripts/show-tunnel-info.sh",
+    "ngrok": "./scripts/start-ngrok.sh",
     "lint": "eslint .",
     "start": "next start",
     "db:seed": "dotenv -e .env.local -- tsx scripts/seed-database.ts",

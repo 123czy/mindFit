@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useRef, useState, useEffect } from "react"
-import type { User } from "@/lib/types"
+import type { User } from "@/lib/api/types"
 import type { BentoElement, BentoShape } from "@/lib/types/bento"
 import { shapeConfig } from "@/lib/types/bento"
 import { Navbar } from "@/components/layout/navbar"
@@ -121,7 +121,7 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
   const [editingBio, setEditingBio] = useState(false)
   const [isMobileView, setIsMobileView] = useState(false)
   const [elements, setElements] = useState<BentoElement[]>(mockBentoElements)
-  const [nameText, setNameText] = useState(user.username)
+  const [nameText, setNameText] = useState<string>(user.display_name || "User")
   const [bioLines, setBioLines] = useState<string[]>((user.bio || "i am what i am").split("\n"))
   
   // 解锁状态：如果是 owner，默认解锁；否则需要付费解锁
@@ -347,8 +347,8 @@ export function BentoProfilePage({ user, isOwner }: BentoProfilePageProps) {
             {/* 左侧：用户信息 */}
             <div className={cn("space-y-4", isMobileView && "flex flex-col p-6")}>
               <Avatar className={cn("h-48 w-48 ring-4 ring-white dark:ring-gray-800 shadow-xl", isMobileView && "h-24 w-24")}>
-                <AvatarImage src={user.avatar || "/artist-avatar.png"} />
-                <AvatarFallback>{user.username[0]}</AvatarFallback>
+                <AvatarImage src={user.avatar_url || "/artist-avatar.png"} />
+                <AvatarFallback>{user.display_name?.[0] || "U"}</AvatarFallback>
               </Avatar>
               
               <div className="space-y-2">

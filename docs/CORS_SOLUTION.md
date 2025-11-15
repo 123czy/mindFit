@@ -279,3 +279,5 @@ const API_BASE_URL = "/api/proxy";
 - [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
 - [Next.js Rewrites](https://nextjs.org/docs/app/api-reference/next-config-js/rewrites)
 - [API 配置文档](./API_CONFIGURATION.md)
+
+

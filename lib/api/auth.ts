@@ -3,7 +3,7 @@
  * 对接 Go 后端的认证接口
  */
 
-import { apiClient, setAuthToken, clearAuthToken } from "./client";
+import { clearAuthToken, setAuthToken } from "./client";
 import type { GoogleSignInRequest, AuthResponse } from "./types";
 
 // ==================== API 函数 ====================
@@ -15,18 +15,28 @@ import type { GoogleSignInRequest, AuthResponse } from "./types";
 export async function googleSignIn(
   payload: GoogleSignInRequest
 ): Promise<AuthResponse> {
-  const response = await apiClient.post<AuthResponse>(
-    "/auth/google/signin",
-    payload,
-    { skipAuth: true }
-  );
+  const res = await fetch("/api/auth/google/signin", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
 
-  // 保存 access token
-  if (response.access_token) {
-    setAuthToken(response.access_token);
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Sign in failed";
+    throw new Error(message);
   }
 
-  return response;
+  const authResponse = data as AuthResponse;
+  if (authResponse.access_token) {
+    setAuthToken(authResponse.access_token);
+  }
+
+  return authResponse;
 }
 
 /**
@@ -35,24 +45,33 @@ export async function googleSignIn(
  * 使用 refresh token cookie（自动发送）
  */
 export async function refreshToken(): Promise<AuthResponse> {
-  const response = await apiClient.post<AuthResponse>("/auth/refresh");
+  const res = await fetch("/api/auth/refresh", {
+    method: "POST",
+    credentials: "include",
+  });
 
-  // 保存新的 access token
-  if (response.access_token) {
-    setAuthToken(response.access_token);
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to refresh token";
+    throw new Error(message);
   }
 
-  return response;
+  const authResponse = data as AuthResponse;
+  if (authResponse.access_token) {
+    setAuthToken(authResponse.access_token);
+  }
+
+  return authResponse;
 }
 
 /**
  * 退出登录
  */
 export async function logout(): Promise<void> {
-  try {
-    // 如果有退出登录接口，调用它
-    // await apiClient.post("/auth/logout");
-  } finally {
-    clearAuthToken();
-  }
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+  clearAuthToken();
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useMemo, useState } from "react"
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,18 +20,27 @@ import { useCurrentUser } from "@/lib/hooks/use-current-user"
 import type { Product } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { apiGet, apiPost } from "@/lib/utils/api-client"
+import { useCreatePrompt ,usePrompt} from "@/lib/hooks/use-api-prompts"
+import { PromptView } from "@/lib/api/types"
 
 interface CreateProductFormProps {
   postId?: string
-  onSuccess?: (product: Product) => void
+  onSuccess?: () => void
 }
 
-export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps) {
+export interface CreateProductFormHandle {
+  submit: () => Promise<void>
+}
+
+function CreateProductFormInner(
+  { postId, onSuccess }: CreateProductFormProps,
+  ref: React.Ref<CreateProductFormHandle | undefined>
+) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editProductId = searchParams?.get("productId") || undefined
-
+  const createPrompt = useCreatePrompt()
+  const { data: promptData } = usePrompt(editProductId || "")
   const { user, isAuthenticated } = useCurrentUser()
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -135,10 +144,6 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
   const handleSubmit = async (event?: React.FormEvent) => {
     event?.preventDefault()
 
-    if (!isAuthenticated || !user) {
-      toast.error("请先登录")
-      return
-    }
 
     if (!validateBasicInfo() || !validateDisplayInfo()) {
       return
@@ -162,38 +167,23 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
         }
       })
 
-      const { data } = await apiPost<{ data: Product | null }>(
-        "/api/products",
-        {
-          userId: user.id,
-          walletAddress: user.wallet_address || "",
-          postId: postId || null,
-          name: formData.name,
-          description: formData.description,
-          price: formData.price === "Free" ? 0 : parseFloat(formData.price),
-          currency: formData.currency,
-          imageUrl:
-            (formData.exampleImages[0] ||
-              formData.imageUrl ||
-              undefined) as string | undefined,
-          fileUrl: formData.fileUrl || undefined,
-          category: formData.category || "text",
-          stock: formData.stock ? parseInt(formData.stock) : undefined,
-          chain_product_id: (Date.now() % 86) + 15,
-          work_id: null,
-          contentData: {
-            exampleImages: formData.exampleImages,
-            guidance: formData.guidance,
-            examplePrompts,
-          },
-        }
-      )
-
+      const promptData: PromptView = await createPrompt.mutateAsync({
+        title: formData.name,
+        description: formData.description,
+        prompt_template: formData.description,
+        model: formData.modelType,
+        generation_type: formData.generationType,
+        price_cents: formData.price === "Free" ? 0 : parseFloat(formData.price) * 100,
+        currency: 'CNY' ,
+        example_outputs: examplePrompts.map((prompt) => prompt.prompt),
+        tag_ids:[]
+      })  
+     
       toast.success("商品创建成功！")
       resetForm()
 
-      if (data) {
-        onSuccess?.(data as Product)
+      if (promptData) {
+        onSuccess?.()
         if (!onSuccess) {
           if (user?.username) {
             router.push(`/profile/${user.username}?tab=products`)
@@ -210,6 +200,10 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
     }
   }
 
+  useImperativeHandle(ref, () => ({
+    submit: () => handleSubmit(),
+  }))
+
   useEffect(() => {
     if (!editProductId) {
       setIsLoadingProduct(false)
@@ -219,24 +213,23 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
     const loadProduct = async () => {
       setIsLoadingProduct(true)
       try {
-        const { data } = await apiGet<{ data: any }>(`/api/products/${editProductId}`)
-        if (!data) {
+        if (!promptData) {
           throw new Error("Product not found")
         }
 
         setFormData({
-          generationType: data.category || "",
-          modelType: "",
-          name: data.name,
-          description: data.description,
-          price: data.price === 0 ? "Free" : data.price.toString(),
-          currency: data.currency || "mUSDT",
-          imageUrl: data.image_url || "",
-          exampleImages: data.content_data?.exampleImages || [],
-          guidance: data.content_data?.guidance || "",
-          fileUrl: data.file_url || "",
-          category: data.category || "",
-          stock: data.stock?.toString() || "",
+          generationType: promptData.generationType || "",  
+          modelType: promptData.latestVersion?.model || "",
+          name: promptData.title,
+          description: promptData.latestVersion?.promptTemplate || "",
+          price: promptData.priceCents === 0 ? "Free" : promptData.priceCents.toString(),
+          currency: promptData.currency || "USD",
+          imageUrl: promptData.latestVersion?.exampleOutputs[0]?.imageUrl || "",
+          exampleImages: promptData.example_outputs || [],
+          guidance: promptData.latestVersion?.description || "",
+          fileUrl: promptData.latestVersion?.exampleOutputs[0]?.fileUrl || "",
+          category: promptData.latestVersion?.exampleOutputs[0]?.category || "",
+          stock: promptData.latestVersion?.exampleOutputs[0]?.stock?.toString() || "",
         })
       } catch (error) {
         console.error("[CreateProduct] Failed to load product", error)
@@ -389,7 +382,7 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>生成类型 *</Label>
@@ -403,8 +396,8 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
                   <SelectValue placeholder="请选择生成类型" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="图文">图文</SelectItem>
-                  <SelectItem value="长文">长文</SelectItem>
+                  <SelectItem value="article">生文</SelectItem>
+                  <SelectItem value="picture">生图</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -553,3 +546,7 @@ export function CreateProductForm({ postId, onSuccess }: CreateProductFormProps)
     </form>
   )
 }
+
+export const CreateProductForm = forwardRef<CreateProductFormHandle, CreateProductFormProps>(
+  CreateProductFormInner
+)

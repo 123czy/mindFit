@@ -17,13 +17,14 @@ import { VariableForm } from "@/components/publish/variable-form"
 import { Eye, Save, Send } from "lucide-react"
 import { toast } from "sonner"
 import type { Product } from "@/lib/types"
-import { usePosts } from "@/lib/posts-context"
-import { useCurrentUser } from "@/lib/hooks/use-current-user"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createTextImage } from "@/lib/utils/text-to-image"
 import { useTrack } from "@/lib/analytics/use-track"
-import { CreateProductForm } from "@/components/product/create-product-form"
-import { apiPost } from "@/lib/utils/api-client"
+import { CreateProductForm, type CreateProductFormHandle } from "@/components/product/create-product-form"
+import { useCreatePost ,usePublishPost} from "@/lib/hooks/use-api-posts"
+import { useLoginDialog } from "@/lib/hooks/useLoginDialog"
+import { useCurrentUserInfo } from "@/lib/hooks/use-api-auth"
+
 
 enum PublishType {
   picture = "picture",
@@ -62,8 +63,6 @@ const covers = [
 
 export function PublishEditor() {
   const router = useRouter()
-  const { addPost } = usePosts()
-  const { user, isAuthenticated } = useCurrentUser()
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
   const [images, setImages] = useState<string[]>([])
@@ -78,17 +77,26 @@ export function PublishEditor() {
   const [cover, setCover] = useState<Cover>("cover1")
   const [documentPreviewImage, setDocumentPreviewImage] = useState<string>("")
   const [variables, setVariables] = useState<Array<{id: string, type: string, value: string}>>([])
+  const createPost = useCreatePost()
+  const productFormRef = useRef<CreateProductFormHandle>(null)
+
+  const { ensureLogin } = useLoginDialog()
+  const { data: currentUser } = useCurrentUserInfo()
   const { track } = useTrack()
+  const publishPost = usePublishPost()
+
+
   const draftIdRef = useRef<string>(
     typeof crypto !== "undefined" ? crypto.randomUUID() : `${Date.now()}`
   )
   const draftId = draftIdRef.current
-  const handlePublish = async () => {
-    if (!isAuthenticated || !user) {
-      toast.error("请先登录")
-      return
-    }
 
+  const handleProductSuccess = () => {
+    router.push("/profile?tab=products")
+  }
+
+
+  const handlePublish = async () => {
     if (!title.trim()) {
       toast.error("请输入标题")
       return
@@ -102,106 +110,68 @@ export function PublishEditor() {
       return
     }
 
+    ensureLogin(async () => {
+      setIsPublishing(true)
+      try {
+        if (productType === ProductType.post) {
+          const { data: newPost } = await createPost.mutateAsync({
+            title,
+            body,
+            salable_ids: [],
+            tag_ids: tags,
+          })
 
-    track({
-      event_name: "submit",
-      ap_name: "publish_submit_btn",
-      refer: "publish",
-      action_type: "create_post",
-      items: [
-        {
-          item_type: "post_draft",
-          item_value: draftId,
-          item_meta: {
-            has_images: images.length > 0,
-            has_products: selectedProducts.length > 0,
-            tags_count: tags.length,
-          },
-        },
-      ],
-    })
+          await publishPost.mutateAsync(newPost?.id)
 
-    setIsPublishing(true)
+          track({
+            event_name: "submit",
+            ap_name: "publish_submit_btn",
+            refer: "publish",
+            action_type: "create_post_success",
+            items: [
+              {
+                item_type: "post_draft",
+                item_value: draftId,
+                item_meta: {
+                  post_id: newPost?.id,
+                },
+              },
+            ],
+          })
 
-    try {
-      console.log("[Publishing] Creating post in Supabase:", { 
-        title, 
-        body, 
-        images, 
-        tags, 
-        paidPrice 
-      })
-
-      const { data: newPost } = await apiPost<{ data: any }>(
-        "/api/posts",
-        {
-          userId: user.id,
-          walletAddress: user.wallet_address,
-          title,
-          content: body,
-          images,
-          tags,
-          isPaid: false,
-          price: paidPrice,
-          paidContent: paidContent,
+          toast.success("帖子发布成功！")
+          router.push("/")
+        } else {
+          if (productFormRef.current) {
+            await productFormRef.current.submit()
+          }
+          track({
+            event_name: "submit",
+            ap_name: "publish_submit_btn",
+            refer: "publish",
+            action_type: "create_prompt_success",
+          })
         }
-      )
-
-      // Also add to local context for immediate UI update
-      addPost({
-        userId: user.id,
-        title,
-        body,
-        images,
-        hasPaidContent,
-        products: selectedProducts.length > 0 ? selectedProducts : undefined,
-        tags,
-        likeCount: 0,
-        commentCount: 0,
-        viewCount: 0,
-      })
-
-      track({
-        event_name: "submit",
-        ap_name: "publish_submit_btn",
-        refer: "publish",
-        action_type: "create_post_success",
-        items: [
-          {
-            item_type: "post_draft",
-            item_value: draftId,
-            item_meta: {
-              post_id: newPost?.id,
+      } catch (error) {
+        console.error("[Publishing] Error creating content:", error)
+        toast.error("发布失败，请重试")
+        track({
+          event_name: "submit",
+          ap_name: "publish_submit_btn",
+          refer: "publish",
+          action_type: "create_post_failed",
+          items: [
+            {
+              item_type: "post_draft",
+              item_value: draftId,
             },
-          },
-        ],
-      })
-
-      toast.success("发布成功！")
-      console.log("[Publishing] Post created successfully:", newPost)
-
-      
-
-      router.push("/")
-    } catch (error) {
-      console.error("[Publishing] Error creating post:", error)
-      toast.error("发布失败，请重试")
-      track({
-        event_name: "submit",
-        ap_name: "publish_submit_btn",
-        refer: "publish",
-        action_type: "create_post_failed",
-        items: [
-          {
-            item_type: "post_draft",
-            item_value: draftId,
-          },
-        ],
-        extra: { message: (error as Error)?.message },
-      })
-    } finally {
-      setIsPublishing(false)
-    }
+          ],
+          extra: { message: (error as Error)?.message },
+        })
+      } finally {
+        setIsPublishing(false)
+      }
+    }, { actionType: productType === ProductType.post ? "create_post" : "create_prompt" })
   }
 
   const handleBackClick = (e: React.MouseEvent) => {
@@ -284,9 +254,13 @@ export function PublishEditor() {
   }, [title, body, cover, publishType])
 
   // 验证所有变量是否都已填写
-  const allVariablesFilled = variables.length === 0 || variables.every(v => v.value.trim() !== '')
-  
-  const canPublish = title.trim() && body.trim() && images.length > 0 && allVariablesFilled
+  const allVariablesFilled =
+    variables.length === 0 || variables.every((v) => v.value.trim() !== "")
+
+  const canPublish =
+    productType === ProductType.post
+      ? title.trim() && body.trim() && images.length > 0 && allVariablesFilled
+      : true
 
   return (
       <div className="min-h-screen bg-background">
@@ -325,7 +299,7 @@ export function PublishEditor() {
                 className="cursor-pointer rounded-xl bg-primary hover:bg-primary/90 shadow-apple hover:shadow-apple-lg transition-apple active-press"
               >
                 <Send className="mr-2 h-4 w-4" />
-                {isPublishing ? "创建中..." : "创建"}
+                {isPublishing ? "创建中..." : `${productType === ProductType.post ? "发布" : "创建"}${productType === ProductType.post ? "帖子" : "商品"}`}
               </Button>
             </div>
           </div>
@@ -397,9 +371,7 @@ export function PublishEditor() {
             </div>
         </div>
       : <div className="container mx-auto px-4 py-8 max-w-4xl">
-        
-         <CreateProductForm />
-      
+         <CreateProductForm ref={productFormRef} onSuccess={handleProductSuccess} />
       </div>}
 
       {/* Preview Modal */}
@@ -411,10 +383,10 @@ export function PublishEditor() {
         images={publishType === PublishType.document && documentPreviewImage ? [documentPreviewImage] : images}
         tags={tags}
         products={selectedProducts}
-        currentUser={user ? {
-          username: user.username || "您",
-          avatar: user.avatar_url || undefined,
-          bio: user.bio || undefined
+        currentUser={currentUser ? {
+          username: currentUser.display_name || "您",
+          avatar: currentUser.avatar_url || undefined,
+          bio: currentUser.bio || undefined
         } : undefined}
       />
     </div>

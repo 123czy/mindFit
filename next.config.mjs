@@ -36,6 +36,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "**.ngrok-free.app",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
   async headers() {

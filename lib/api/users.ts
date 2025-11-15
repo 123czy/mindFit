@@ -13,7 +13,19 @@ import type { User, UpdateMeRequest } from "./types";
  * GET /me
  */
 export async function getCurrentUser(): Promise<User> {
-  return apiClient.get<User>("/me");
+  const res = await fetch("/api/me", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to load current user";
+    throw new Error(message);
+  }
+
+  return data as User;
 }
 
 /**
@@ -23,7 +35,23 @@ export async function getCurrentUser(): Promise<User> {
 export async function updateCurrentUser(
   payload: UpdateMeRequest
 ): Promise<User> {
-  return apiClient.put<User>("/me", payload);
+  const res = await fetch("/api/me", {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok || !data) {
+    const message = (data as any)?.error || "Failed to update profile";
+    throw new Error(message);
+  }
+
+  return data as User;
 }
 
 /**

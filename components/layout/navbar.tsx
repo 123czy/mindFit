@@ -13,46 +13,39 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
-import { useAuth } from "@/lib/auth/auth-context"
-import { useLoginDialog } from "@/lib/auth/use-login-dialog"
-import { useRequireAuth } from "@/lib/auth/use-require-auth"
+// import { useAuth } from "@/lib/auth/auth-context"
+import { useLoginDialog } from "@/lib/hooks/useLoginDialog"
 import { useState } from "react"
 import { useTrack } from "@/lib/analytics/use-track"
+import { useCurrentUserInfo } from "@/lib/hooks/use-api-auth"
 
 export function Navbar() {
-  const { user, isAuthenticated, signOut } = useAuth()
-  const { openDialog } = useLoginDialog()
-  const { requireAuth } = useRequireAuth()
+  const { data: currentUser } = useCurrentUserInfo()
+  const { ensureLogin } = useLoginDialog()
   const [searchType, setSearchType] = useState<"posts" | "users" | "tags">("posts")
   const [searchQuery, setSearchQuery] = useState("")
   const { track } = useTrack()
 
   const handleLogin = () => {
-    track({
-      event_name: "click",
-      ap_name: "navbar_login_btn",
-      items: [{ item_type: "cta", item_value: "login" }],
+    ensureLogin(undefined, {
+      actionType: "navbar_login",
     })
-    openDialog()
   }
 
   const handleLogout = async () => {
-    await signOut()
+    // await signOut()
     toast.success("已退出登录")
   }
 
   const handleNotifications = () => {
-    track({
-      event_name: "click",
-      ap_name: "navbar_notifications_btn",
-      items: [{ item_type: "cta", item_value: "notifications" }],
-    })
-    requireAuth(
-      () => {
-        window.location.href = "/notifications"
-      },
-      "view_notifications"
-    )
+    ensureLogin(() => {
+      track({
+        event_name: "click",
+        ap_name: "navbar_notifications_btn",
+        items: [{ item_type: "cta", item_value: "notifications" }],
+      })
+      window.location.href = "/notifications"
+    }, { actionType: "view_notifications" })
   }
 
   const handleSearch = (e: React.FormEvent) => {
@@ -65,8 +58,8 @@ export function Navbar() {
     const path = searchType === "posts" 
       ? `/search?${params}`
       : searchType === "users"
-      ? `/search/users?${params}`
-      : `/search/tags?${params}`
+      ? `/search?${params}`
+      : `/search?${params}`
 
     track({
       event_name: "submit",
@@ -159,7 +152,7 @@ export function Navbar() {
             </form>
           </div>
 
-          {isAuthenticated && user ? (
+          {currentUser ? (
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -174,18 +167,18 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 px-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar_url || undefined} />
+                      <AvatarImage src={currentUser.avatar_url || undefined} />
                       <AvatarFallback>
-                        {user.username?.[0]?.toUpperCase() || "U"}
+                        {currentUser.display_name?.[0]?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:inline-block">{user.username}</span>
+                    <span className="hidden md:inline-block">{currentUser.display_name}</span>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link href={`/profile/${user.username}`}>个人资料</Link>
+                    <Link href={`/profile/${currentUser.display_name}`}>个人资料</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/publish">发布内容</Link>

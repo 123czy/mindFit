@@ -7,7 +7,6 @@ import { useState } from "react"
 import { AuthProvider } from "@/lib/auth/auth-context"
 import { LoginDialog } from "@/components/auth/login-dialog"
 import { AnalyticsProvider } from "@/lib/analytics/analytics-provider"
-import { PostsProvider } from "@/lib/posts-context"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -28,10 +27,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AnalyticsProvider>
-          <PostsProvider>
             {children}
             <LoginDialog />
-          </PostsProvider>
         </AnalyticsProvider>
       </AuthProvider>
     </QueryClientProvider>

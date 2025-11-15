@@ -146,6 +146,23 @@ export interface GoogleUserInfo {
   verified_email: boolean;
 }
 
+export interface GoogleUserResponse {
+  user: {
+    avatar_url: "string";
+    bio: "string";
+    created_at: "string";
+    display_name: "string";
+    email: "string";
+    email_verified: true;
+    id: "string";
+    last_login_at: "string";
+    locale: "string";
+    role: "string";
+    updated_at: "string";
+  };
+  access_token: string;
+}
+
 // JWT Token 载荷
 export interface GoogleJwtPayload {
   iss: string; // Issuer

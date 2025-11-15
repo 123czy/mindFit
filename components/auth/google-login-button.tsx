@@ -4,12 +4,12 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { GoogleAuthService } from '@/lib/auth/google-auth-services';
 import { useGoogleSignIn } from '@/lib/hooks/use-api-auth';
-import type { CredentialResponse, GoogleUserInfo } from '@/types/google-auth';
+import type { CredentialResponse, GoogleUserResponse } from '@/types/google-auth';
 import { ENV_CONFIG } from '@/lib/constants';
 import { useTrack } from '@/lib/analytics/use-track';
 
 interface GoogleLoginButtonProps {
-  onSuccess: (userInfo: GoogleUserInfo, idToken: string) => void;
+  onSuccess: (userInfo: GoogleUserResponse["user"], idToken: string) => void;
   onError?: (error: Error) => void;
   disabled?: boolean;
   className?: string;
@@ -82,7 +82,7 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       console.log('google登录成功', res );
       
       // 调用成功回调
-      onSuccess(userInfo, res.access_token);
+      onSuccess(res.user, res.access_token);
 
       track({
         event_name: "submit",
@@ -178,10 +178,10 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   }
 
   return (
-    <div className={`google-login-button-wrapper ${className}`} style={customStyle}>
+    <div className={`google-login-button-wrapper ${className} flex items-center justify-center`} style={customStyle}>
       <div 
         ref={buttonRef} 
-        className="google-login-button-container rounded-xl font-medium border-border/60 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm hover:shadow" 
+        className="google-login-button-container" 
       />
     </div>
   );

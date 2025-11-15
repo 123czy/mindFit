@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "../utils/api-client";
-import { mapDbPostToPost, type Post } from "../types";
+import type { Post } from "../types";
 import { CACHE_TIMES, QUERY_PRESETS } from "../react-query/config";
 
 interface UsePostsOptions {
@@ -52,17 +52,8 @@ export function usePostsOptimized(options?: UsePostsOptions) {
       const queryString = query.toString();
       const url = queryString ? `/api/posts?${queryString}` : "/api/posts";
 
-      const response = await apiGet<{ data: Array<any & { products?: any[] }> }>(url);
-
-      const data = response.data ?? [];
-
-      // 转换数据格式
-      const mappedPosts: Post[] = data.map((dbPost) => {
-        const products = dbPost.products || [];
-        return mapDbPostToPost(dbPost, products);
-      });
-
-      return mappedPosts;
+      const response = await apiGet<{ data: Post[] }>(url)
+      return response.data ?? []
     },
     enabled: options?.enabled !== false, // 默认启用
     // 每次刷新页面时获取新数据，不使用缓存

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createPost, getPostsWithProducts } from "@/lib/supabase/api/posts"
+import { getPostsWithProductsSSR } from "@/lib/supabase/api/posts-server"
 
 function parseTags(param: string | null): string[] | undefined {
   if (!param) return undefined
@@ -16,31 +16,21 @@ export async function GET(request: NextRequest) {
   const userId = searchParams.get("userId") || undefined
   const tags = parseTags(searchParams.get("tags"))
 
-  const { data, error } = await getPostsWithProducts({
-    limit: Number.isNaN(limit) ? undefined : limit,
-    offset: Number.isNaN(offset) ? undefined : offset,
-    userId,
-    tags,
-  })
+  try {
+    const data = await getPostsWithProductsSSR({
+      limit: Number.isNaN(limit) ? undefined : limit,
+      offset: Number.isNaN(offset) ? undefined : offset,
+      userId,
+      tags,
+    })
 
-  if (error) {
-    const message = typeof error === "string" ? error : error?.message || "Failed to load posts"
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ data })
+  } catch (error: any) {
+    console.error("[Supabase Posts] Failed to load posts", error)
+    return NextResponse.json(
+      { error: error?.message || "Failed to load posts" },
+      { status: 500 }
+    )
   }
-
-  return NextResponse.json({ data })
-}
-
-export async function POST(request: NextRequest) {
-  const payload = await request.json()
-
-  const { data, error } = await createPost(payload)
-
-  if (error) {
-    const message = typeof error === "string" ? error : error?.message || "Failed to create post"
-    return NextResponse.json({ error: message }, { status: 400 })
-  }
-
-  return NextResponse.json({ data })
 }
 

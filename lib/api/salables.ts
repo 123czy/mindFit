@@ -3,7 +3,6 @@
  * 对接 Go 后端的 Salable 接口
  */
 
-import { apiClient } from "./client";
 import type {
   SalableListResponse,
   PurchasedSalableListResponse,
@@ -14,7 +13,18 @@ import type {
 
 export interface GetCreatedSalablesParams {
   status?: "draft" | "published" | "archived";
-  type?: "PROMPT_FILE" | "BUNDLE";
+  mounted_item?: "PROMPT_FILE" | "BUNDLE" | "ZIP";
+  post_id?: string;
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) {
+    const message =
+      (data as any)?.error || (data as any)?.message || "请求失败";
+    throw new Error(message);
+  }
+  return data as T;
 }
 
 /**
@@ -25,14 +35,30 @@ export async function getCreatedSalables(
   params?: GetCreatedSalablesParams
 ): Promise<SalableListResponse> {
   // 转换 params 为 API 客户端需要的格式
-  const apiParams: Record<string, string | number | boolean | undefined> = {};
+  const apiParams = new URLSearchParams();
+  if (params?.status) apiParams.set("status", params.status);
+  if (params?.mounted_item) apiParams.set("mounted_item", params.mounted_item);
+  if (params?.post_id) apiParams.set("post_id", params.post_id);
 
-  if (params?.status) apiParams.status = params.status;
-  if (params?.type) apiParams.type = params.type;
+  const queryString = apiParams.toString();
+  const url = queryString
+    ? `/api/salables/created?${queryString}`
+    : `/api/salables/created`;
 
-  return apiClient.get<SalableListResponse>("/salables/created", {
-    params: apiParams,
+  console.log("[getCreatedSalables] Request URL:", url);
+  console.log("[getCreatedSalables] Params:", params);
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
+
+  const data = await handleResponse<SalableListResponse>(response);
+  console.log("[getCreatedSalables] Response data:", data);
+  return data;
 }
 
 /**
@@ -40,7 +66,15 @@ export async function getCreatedSalables(
  * GET /salables/purchased
  */
 export async function getPurchasedSalables(): Promise<PurchasedSalableListResponse> {
-  return apiClient.get<PurchasedSalableListResponse>("/salables/purchased");
+  const response = await fetch(`/api/salables/purchased`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await handleResponse<PurchasedSalableListResponse>(response);
+  return data;
 }
 
 /**
@@ -50,5 +84,14 @@ export async function getPurchasedSalables(): Promise<PurchasedSalableListRespon
 export async function publishSalable(
   id: string
 ): Promise<SuccessMessageResponse> {
-  return apiClient.post<SuccessMessageResponse>(`/salables/${id}/publish`);
+  const res = await fetch(`/api/salables/${id}/publish`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await handleResponse<SuccessMessageResponse>(res);
+  return data;
 }
